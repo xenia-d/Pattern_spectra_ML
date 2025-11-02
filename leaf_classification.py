@@ -136,7 +136,7 @@ def main():
     b_flat = np.array(all_histogramsH).reshape(-1, 100*4)
     X1 = np.vstack([b_flat, a2_flat])
     y1 = np.array([0]*len(b_flat) + [1]*len(a2_flat))
-    xval_count = 10    
+    xval_count = 5    
     xval_fraction = 0.2
     random_splitter = random_splitter_gen(X1, y1, xval_fraction)
 
@@ -172,4 +172,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
