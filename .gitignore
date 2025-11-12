@@ -1,4 +1,7 @@
 *.pyc
 venv/
+venvWSL/
 
 dataset/
+
+output/

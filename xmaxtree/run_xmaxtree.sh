@@ -2,6 +2,8 @@
 set -e  # stop on errors
 
 OUTDIR="/mnt/c/Users/anush/Documents/PostDoc/Croptimal datasets/NAKFielddataset/Mondial/Filtertype3"
+
+
 mkdir -p "$OUTDIR"
 
 index1=0
