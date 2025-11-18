@@ -12,7 +12,9 @@ from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_sc
 import cv2
 import numpy as np
 from collections import defaultdict
+import random
 from skimage import exposure
+
 
 def load_granulometry_m_file(path):
     data = []
@@ -27,6 +29,8 @@ def load_granulometry_m_file(path):
         numbers = [float(x) for x in tokens[1:]]  # skip row index
         data.append(numbers)
     return np.array(data)
+
+
 def create_rgb_feature_vector(R_file, G_file, B_file, H_file, S_file, V_file):
     R = np.array(load_granulometry_m_file(R_file))[:10,:10].flatten()
     if np.max(R) == 0:
@@ -90,7 +94,7 @@ def main():
     G_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hG*.m"))
     B_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hB*.m"))
     H_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hS*.m"))
-    import random
+
     random.seed(2)  # ← set a fixed seed (any number works)
     # num_samples = 2500
     R_indices = range(len(R_files))
@@ -107,7 +111,7 @@ def main():
         rgb_feature = create_rgb_feature_vector(R_file, G_file, B_file, H_file,  None, None)
         if rgb_feature is not None:
             all_histogramsH.append(rgb_feature)
-    import numpy as np
+    
     all_histogramsH = np.array(all_histogramsH)
     R_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhR*.m"))
     G_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhG*.m"))
