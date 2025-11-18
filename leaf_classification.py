@@ -53,6 +53,12 @@ def create_rgb_feature_vector(R_file, G_file, B_file, H_file, S_file, V_file):
         return None
     # H= H/ np.max(H)
     # H= np.log1p(H)
+    S = np.array(load_granulometry_m_file(S_file))[:10,:10].flatten()
+    if np.max(S) == 0:
+        return None
+    V = np.array(load_granulometry_m_file(V_file))[:10,:10].flatten()
+    if np.max(V) == 0:
+        return None
     # Make sure they are the same length
     if  len(R) != len(G) != len(B):
         raise ValueError("R, G, B arrays must be the same length")
