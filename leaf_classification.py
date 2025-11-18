@@ -90,6 +90,8 @@ def random_splitter_gen(imgs, labels,  validation_fraction):
         yield imgs_train, labels_train, imgs_val, labels_val
 
 def main():
+
+    # get healthy leaf features
     R_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hR*.m"))
     G_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hG*.m"))
     B_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hB*.m"))
@@ -113,6 +115,9 @@ def main():
             all_histogramsH.append(rgb_feature)
     
     all_histogramsH = np.array(all_histogramsH)
+
+
+    # get non healthy leaf features
     R_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhR*.m"))
     G_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhG*.m"))
     B_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhB*.m"))
@@ -136,6 +141,8 @@ def main():
         rgb_feature = create_rgb_feature_vector(R_file, G_file, B_file, H_file, None, None)
         if rgb_feature is not None:
             all_histogramsnhy.append(rgb_feature)
+
+
     a2_flat = np.array(all_histogramsnhy).reshape(-1, 100*4)
     b_flat = np.array(all_histogramsH).reshape(-1, 100*4)
     X1 = np.vstack([b_flat, a2_flat])
