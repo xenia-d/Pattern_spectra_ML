@@ -53,17 +53,21 @@ def create_rgb_feature_vector(R_file, G_file, B_file, H_file, S_file, V_file):
         return None
     # H= H/ np.max(H)
     # H= np.log1p(H)
-    S = np.array(load_granulometry_m_file(S_file))[:10,:10].flatten()
-    if np.max(S) == 0:
-        return None
-    V = np.array(load_granulometry_m_file(V_file))[:10,:10].flatten()
-    if np.max(V) == 0:
-        return None
+
+
+    # S = np.array(load_granulometry_m_file(S_file))[:10,:10].flatten()
+    # if np.max(S) == 0:
+    #     return None
+    # V = np.array(load_granulometry_m_file(V_file))[:10,:10].flatten()
+    # if np.max(V) == 0:
+    #     return None
+
+    
     # Make sure they are the same length
     if  len(R) != len(G) != len(B):
         raise ValueError("R, G, B arrays must be the same length")
     # Stack into N x 3 array
-    rgb_features = np.concatenate([R, G, B, H ], axis=0)
+    rgb_features = np.concatenate([R, G, B, H], axis=0)
     return rgb_features
 # To generate training and validation sets
 
@@ -98,10 +102,10 @@ def random_splitter_gen(imgs, labels,  validation_fraction):
 def main():
 
     # get healthy leaf features
-    R_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hR*.m"))
-    G_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hG*.m"))
-    B_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hB*.m"))
-    H_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\hS*.m"))
+    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Rchannel\hR*.m"))
+    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Gchannel\hG*.m"))
+    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Bchannel\hB*.m"))
+    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Hchannel\hH*.m"))
 
     random.seed(2)  # ← set a fixed seed (any number works)
     # num_samples = 2500
@@ -124,10 +128,10 @@ def main():
 
 
     # get non healthy leaf features
-    R_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhR*.m"))
-    G_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhG*.m"))
-    B_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhB*.m"))
-    H_files = sorted(glob.glob(r"C:\Users\anush\Documents\PostDoc\Croptimal datasets\NAKFielddataset\Spunta_variety\leaf_images\RGBFilter\channels_pgm\features\uhS*.m"))
+    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Rchannel\uhR*.m"))
+    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Gchannel\uhG*.m"))
+    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Bchannel\uhB*.m"))
+    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Hchannel\uhH*.m"))
     random.seed(4)
     num_samples = len(B_files)
     R_indices = range(len(B_files))
