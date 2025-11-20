@@ -22,7 +22,7 @@ which python
 python -c "import torch; print(torch.__version__)"
 
 echo "Starting training..."
-python -u leaf_classification.py 
+python -u feature_extraction/feature_extraction.py
 
 # Move Saved Files (contains plots and best model) to scratch results folder
 echo "Moving results to /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}..."
