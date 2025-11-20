@@ -102,10 +102,21 @@ def random_splitter_gen(imgs, labels,  validation_fraction):
 def main():
 
     # get healthy leaf features
-    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Rchannel\hR*.m"))
-    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Gchannel\hG*.m"))
-    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Bchannel\hB*.m"))
-    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Hchannel\hH*.m"))
+
+    ROOT_DIR = "xmaxtree/output/Spunta"
+    # ROOT_DIR = r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta" # for my computer
+
+
+    R_files = sorted(glob.glob(os.path.join(ROOT_DIR, "HealthyLeaf_Rchannel", "hR*.m")))
+    G_files = sorted(glob.glob(os.path.join(ROOT_DIR, "HealthyLeaf_Gchannel", "hG*.m")))
+    B_files = sorted(glob.glob(os.path.join(ROOT_DIR, "HealthyLeaf_Bchannel", "hB*.m")))
+    H_files = sorted(glob.glob(os.path.join(ROOT_DIR, "HealthyLeaf_Hchannel", "hH*.m")))
+
+
+    # R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Rchannel\hR*.m"))
+    # G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Gchannel\hG*.m"))
+    # B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Bchannel\hB*.m"))
+    # H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Hchannel\hH*.m"))
 
     random.seed(2)  # ← set a fixed seed (any number works)
     # num_samples = 2500
@@ -128,10 +139,11 @@ def main():
 
 
     # get non healthy leaf features
-    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Rchannel\uhR*.m"))
-    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Gchannel\uhG*.m"))
-    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Bchannel\uhB*.m"))
-    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Hchannel\uhH*.m"))
+    R_files = sorted(glob.glob(os.path.join(ROOT_DIR, "UnhealthyLeaf_Rchannel", "uhR*.m")))
+    G_files = sorted(glob.glob(os.path.join(ROOT_DIR, "UnhealthyLeaf_Gchannel", "uhG*.m")))
+    B_files = sorted(glob.glob(os.path.join(ROOT_DIR, "UnhealthyLeaf_Bchannel", "uhB*.m")))
+    H_files = sorted(glob.glob(os.path.join(ROOT_DIR, "UnhealthyLeaf_Hchannel", "uhH*.m")))
+
     random.seed(4)
     num_samples = len(B_files)
     R_indices = range(len(B_files))
