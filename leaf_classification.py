@@ -42,17 +42,17 @@ def create_rgb_feature_vector(R_file, G_file, B_file, H_file, S_file, V_file):
         return None
     # G= G/ np.max(G)
     # G= np.log1p(G)  
-    B = np.array(load_granulometry_m_file(B_file))[:10,:10].flatten()
-    if np.max(B) == 0:
-        return None
-    # # 
+    # B = np.array(load_granulometry_m_file(B_file))[:10,:10].flatten()
+    # if np.max(B) == 0:
+    #     return None
+    # # # 
     # B= B/ np.max(B)
     # B= np.log1p(B)
-    H = np.array(load_granulometry_m_file(H_file))[:10,:10].flatten()
-    if np.max(H) == 0:
-        return None
-    # H= H/ np.max(H)
-    # H= np.log1p(H)
+    # H = np.array(load_granulometry_m_file(H_file))[:10,:10].flatten()
+    # if np.max(H) == 0:
+    #     return None
+    # # H= H/ np.max(H)
+    # # H= np.log1p(H)
 
 
     # S = np.array(load_granulometry_m_file(S_file))[:10,:10].flatten()
@@ -67,7 +67,7 @@ def create_rgb_feature_vector(R_file, G_file, B_file, H_file, S_file, V_file):
     if  len(R) != len(G) != len(B):
         raise ValueError("R, G, B arrays must be the same length")
     # Stack into N x 3 array
-    rgb_features = np.concatenate([R, G, B, H], axis=0)
+    rgb_features = np.concatenate([R, G], axis=0)
     return rgb_features
 # To generate training and validation sets
 
@@ -131,7 +131,7 @@ def main():
         G_file = G_files[i]
         B_file = B_files[i]
         H_file = H_files[i]
-        rgb_feature = create_rgb_feature_vector(R_file, G_file, B_file, H_file,  None, None)
+        rgb_feature = create_rgb_feature_vector(R_file, G_file, None, None,  None, None)
         if rgb_feature is not None:
             all_histogramsH.append(rgb_feature)
     
@@ -160,7 +160,7 @@ def main():
         H_file = H_files[i]
         # S_file = S_files[i]
         # V_file = V_files[i]
-        rgb_feature = create_rgb_feature_vector(R_file, G_file, B_file, H_file, None, None)
+        rgb_feature = create_rgb_feature_vector(R_file, G_file, None, None, None, None)
         if rgb_feature is not None:
             all_histogramsnhy.append(rgb_feature)
 
