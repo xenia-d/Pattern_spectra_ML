@@ -64,7 +64,7 @@ def random_splitter_gen(imgs, labels, validation_fraction):
 
 
 def main():
-    ROOT_DIR = "../xmaxtree/output/Spunta"
+    ROOT_DIR = "xmaxtree/output/Spunta"
 
     # Healthy leaf RG
     R_files = sorted(glob.glob(os.path.join(ROOT_DIR, "HealthyLeaf_Rchannel", "hR*.m")))
