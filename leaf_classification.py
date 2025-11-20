@@ -134,6 +134,10 @@ def random_splitter_gen(imgs, labels,  validation_fraction):
 
 def main():
 
+    # set seeds
+    np.random.seed(12)
+    torch.manual_seed(12)
+
     # get healthy leaf features
 
     ROOT_DIR = "xmaxtree/output/Spunta"
