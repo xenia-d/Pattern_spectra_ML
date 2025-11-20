@@ -162,7 +162,7 @@ def main():
     print("Final averaged confusion matrix:\n", np.mean(all_conf, axis=0))
     print("============================================\n")
 
-    save_confusion_matrix(np.mean(all_conf, axis=0), out_dir="Saved_Results_RG")
+    save_confusion_matrix(np.mean(all_conf, axis=0), out_dir="Saved_Results")
 
 if __name__ == "__main__":
     main()
