@@ -14,6 +14,39 @@ import numpy as np
 from collections import defaultdict
 import random
 from skimage import exposure
+import matplotlib.pyplot as plt
+
+
+def save_confusion_matrix(conf_matrix, out_dir="Saved_Results"):
+    os.makedirs(out_dir, exist_ok=True)
+
+    plt.figure(figsize=(6, 5))
+    plt.imshow(conf_matrix, interpolation="nearest")
+    plt.title("Confusion Matrix (Normalized)")
+    plt.colorbar()
+
+    classes = ["Healthy", "Unhealthy"]
+
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    # Print the numbers inside the matrix
+    thresh = conf_matrix.max() / 2.
+    for i in range(conf_matrix.shape[0]):
+        for j in range(conf_matrix.shape[1]):
+            plt.text(j, i, f"{conf_matrix[i, j]:.2f}",
+                     horizontalalignment="center",
+                     color="white" if conf_matrix[i, j] > thresh else "black")
+
+    plt.ylabel("Actual")
+    plt.xlabel("Predicted")
+    plt.tight_layout()
+
+    save_path = os.path.join(out_dir, "confusion_matrix.png")
+    plt.savefig(save_path, dpi=300)
+    plt.close()
+    print(f"Confusion matrix saved to: {save_path}")
 
 
 def load_granulometry_m_file(path):
@@ -222,6 +255,8 @@ def main():
     print("Final confusion matrix (averaged):\n", final_confusion)
     print("===============================================")
 
+    save_confusion_matrix(final_confusion)
+    
 if __name__ == "__main__":
     main()
 
