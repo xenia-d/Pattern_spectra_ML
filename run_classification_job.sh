@@ -10,7 +10,7 @@
 source $HOME/venvs/HTSMvenv_py310/bin/activate
 
 # Create working directory in TMPDIR
-mkdir $TMPDIR
+# mkdir $TMPDIR
 cp -r /scratch/$USER/Pattern_spectra_ML $TMPDIR
 cd $TMPDIR/Pattern_spectra_ML
 
