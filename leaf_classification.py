@@ -62,7 +62,7 @@ def create_rgb_feature_vector(R_file, G_file, B_file, H_file, S_file, V_file):
     # if np.max(V) == 0:
     #     return None
 
-    
+
     # Make sure they are the same length
     if  len(R) != len(G) != len(B):
         raise ValueError("R, G, B arrays must be the same length")
@@ -102,10 +102,10 @@ def random_splitter_gen(imgs, labels,  validation_fraction):
 def main():
 
     # get healthy leaf features
-    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Rchannel\hR*.m"))
-    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Gchannel\hG*.m"))
-    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Bchannel\hB*.m"))
-    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\HealthyLeaf_Hchannel\hH*.m"))
+    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Rchannel\hR*.m"))
+    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Gchannel\hG*.m"))
+    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Bchannel\hB*.m"))
+    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\HealthyLeaf_Hchannel\hH*.m"))
 
     random.seed(2)  # ← set a fixed seed (any number works)
     # num_samples = 2500
@@ -128,10 +128,10 @@ def main():
 
 
     # get non healthy leaf features
-    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Rchannel\uhR*.m"))
-    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Gchannel\uhG*.m"))
-    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Bchannel\uhB*.m"))
-    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\UnhealthyLeaf_Hchannel\uhH*.m"))
+    R_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Rchannel\uhR*.m"))
+    G_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Gchannel\uhG*.m"))
+    B_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Bchannel\uhB*.m"))
+    H_files = sorted(glob.glob(r"C:\Users\polyx\Desktop\Github Repos\Pattern_spectra_ML\xmaxtree\output\Spunta\UnhealthyLeaf_Hchannel\uhH*.m"))
     random.seed(4)
     num_samples = len(B_files)
     R_indices = range(len(B_files))
@@ -178,6 +178,10 @@ def main():
         x_test = np.array(x_test)
         y_train = np.array(y_train)
         y_test = np.array(y_test)
+
+        y_train = np.asarray(y_train, dtype=np.int64)
+        y_test  = np.asarray(y_test,  dtype=np.int64)
+
 
         model.fit(x_train, y_train)
   
