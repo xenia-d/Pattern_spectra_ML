@@ -173,6 +173,9 @@ def main():
     xval_fraction = 0.2
     random_splitter = random_splitter_gen(X1, y1, xval_fraction)
 
+    all_f1_test = []
+    all_conf_matrices = []
+
     for xval_nr in range(xval_count):
         x_train, y_train,  x_test, y_test = next(random_splitter)
         model = IAALVQ(max_iter=100, prototypes_per_class=2, omega_rank=400, seed=59,
@@ -201,11 +204,23 @@ def main():
         y_pred_train = model.predict(x_train)
         f1_test= f1_score(y_test, y_pred_test, average='weighted')
         f1_train= f1_score(y_train, y_pred_train, average='weighted')
+        conf_m = confusion_matrix(y_test, y_pred_test, normalize= "true")
         print("Train F1-score: ", f1_train)
         print("Test F1-score: ", f1_test)
         print("Train accuracy: ", model.score(x_train, y_train))
         print("Test accuracy: ", model.score(x_test, y_test))
-        print(confusion_matrix(y_test, y_pred_test, normalize= "true"))
+        print(conf_m)
+
+        all_f1_test.append(f1_test)
+        all_conf_matrices.append(conf_m)
+
+    final_f1 = np.mean(all_f1_test)
+    final_confusion = np.mean(all_conf_matrices, axis=0)
+
+    print("\n================ FINAL RESULTS ================")
+    print("Final weighted Test F1-score (5-fold average):", final_f1)
+    print("Final confusion matrix (averaged):\n", final_confusion)
+    print("===============================================")
 
 if __name__ == "__main__":
     main()
