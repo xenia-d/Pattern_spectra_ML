@@ -3,3 +3,6 @@ venv/
 venvWSL/
 dataset/
 output/
+__pycache__/
+hist_outputs/
+kde_outputs/
