@@ -32,7 +32,7 @@ def save_confusion_matrix(conf_matrix, out_dir="Saved_Results"):
         for j in range(conf_matrix.shape[1]):
             plt.text(j, i, f"{conf_matrix[i, j]:.2f}",
                      horizontalalignment="center",
-                     color="white" if conf_matrix[i, j] > thresh else "black")
+                     color="black" if conf_matrix[i, j] > thresh else "white")
 
     plt.ylabel("Actual")
     plt.xlabel("Predicted")
