@@ -1,22 +1,19 @@
-# RG-channel classifier version of the original script
-# (Simplified to only load R and G channels, same pipeline)
-
 import os
 import glob
 import numpy as np
-import random
-from sklearn.metrics import f1_score, confusion_matrix
+from itertools import combinations
+from sklearn.metrics import f1_score, confusion_matrix, accuracy_score
 from lvq.IAALVQ import IAALVQ
 from utils.io_management import *
 from utils.preprocessing import *
 import matplotlib.pyplot as plt
 
 
-def save_confusion_matrix(conf_matrix, out_dir="Saved_Results"):
+def save_confusion_matrix(conf_matrix, out_dir="Saved_Results", name="confusion_matrix"):
     os.makedirs(out_dir, exist_ok=True)
 
     plt.figure(figsize=(6, 5))
-    plt.imshow(conf_matrix, interpolation="nearest")
+    plt.imshow(conf_matrix, interpolation="nearest", cmap=plt.cm.Blues)
     plt.title("Confusion Matrix (Normalized)")
     plt.colorbar()
 
@@ -26,7 +23,6 @@ def save_confusion_matrix(conf_matrix, out_dir="Saved_Results"):
     plt.xticks(tick_marks, classes, rotation=45)
     plt.yticks(tick_marks, classes)
 
-    # Print the numbers inside the matrix
     thresh = conf_matrix.max() / 2.
     for i in range(conf_matrix.shape[0]):
         for j in range(conf_matrix.shape[1]):
@@ -38,18 +34,17 @@ def save_confusion_matrix(conf_matrix, out_dir="Saved_Results"):
     plt.xlabel("Predicted")
     plt.tight_layout()
 
-    save_path = os.path.join(out_dir, "confusion_matrix.png")
+    save_path = os.path.join(out_dir, f"{name}.png")
     plt.savefig(save_path, dpi=300)
     plt.close()
     print(f"Confusion matrix saved to: {save_path}")
-
 
 
 def load_granulometry_m_file(path):
     data = []
     with open(path, 'r') as f:
         lines = f.readlines()
-    lines = lines[2:]
+    lines = lines[2:]  # skip headers
     for line in lines:
         line = line.strip()
         if not line:
@@ -60,19 +55,14 @@ def load_granulometry_m_file(path):
     return np.array(data)
 
 
-def create_rg_feature_vector(R_file, G_file):
-    R = np.array(load_granulometry_m_file(R_file))[:10, :10].flatten()
-    if np.max(R) == 0:
-        return None
-
-    G = np.array(load_granulometry_m_file(G_file))[:10, :10].flatten()
-    if np.max(G) == 0:
-        return None
-
-    if len(R) != len(G):
-        raise ValueError("R and G arrays must be the same length")
-
-    return np.concatenate([R, G], axis=0)
+def create_feature_vector(files, channels):
+    arrays = []
+    for ch in channels:
+        arr = np.array(load_granulometry_m_file(files[ch]))[:10, :10].flatten()
+        if np.max(arr) == 0:
+            return None
+        arrays.append(arr)
+    return np.concatenate(arrays, axis=0)
 
 
 def random_splitter_gen(imgs, labels, validation_fraction):
@@ -97,72 +87,100 @@ def random_splitter_gen(imgs, labels, validation_fraction):
         yield imgs_train, labels_train, imgs_val, labels_val
 
 
+def load_channel_files(root_dir, label_prefix):
+    channel_files = {}
+    for ch in ["R", "G", "H", "V"]:
+        pattern = os.path.join(root_dir, f"{label_prefix}{ch}channel", f"{label_prefix}{ch}*.m")
+        files = sorted(glob.glob(pattern))
+        channel_files[ch] = files
+    return channel_files
+
+
 def main():
     ROOT_DIR = "xmaxtree/output/Spunta"
-
-    # Healthy leaf RG
-    R_files = sorted(glob.glob(os.path.join(ROOT_DIR, "HealthyLeaf_Rchannel", "hR*.m")))
-    G_files = sorted(glob.glob(os.path.join(ROOT_DIR, "HealthyLeaf_Gchannel", "hG*.m")))
-
-    all_histogramsH = []
-    for R_file, G_file in zip(R_files, G_files):
-        feat = create_rg_feature_vector(R_file, G_file)
-        if feat is not None:
-            all_histogramsH.append(feat)
-    all_histogramsH = np.array(all_histogramsH)
-
-    # Unhealthy leaf RG
-    R_files = sorted(glob.glob(os.path.join(ROOT_DIR, "UnhealthyLeaf_Rchannel", "uhR*.m")))
-    G_files = sorted(glob.glob(os.path.join(ROOT_DIR, "UnhealthyLeaf_Gchannel", "uhG*.m")))
-
-    all_histogramsNH = []
-    for R_file, G_file in zip(R_files, G_files):
-        feat = create_rg_feature_vector(R_file, G_file)
-        if feat is not None:
-            all_histogramsNH.append(feat)
-    all_histogramsNH = np.array(all_histogramsNH)
-
-    # Stack into dataset
-    X = np.vstack([all_histogramsH, all_histogramsNH])
-    y = np.array([0] * len(all_histogramsH) + [1] * len(all_histogramsNH))
-
     xval_count = 5
-    splitter = random_splitter_gen(X, y, 0.2)
 
-    all_f1_test = []
-    all_conf = []
+    label_map = {"Healthy": "h", "Unhealthy": "uh"}
+    results = []
 
-    for fold in range(xval_count):
-        x_train, y_train, x_test, y_test = next(splitter)
+    # Generate all single, pairwise, and 3-channel combinations
+    channel_pool = ["R", "G", "H", "V"]
+    all_combinations = []
+    for r in range(1, 4):
+        all_combinations.extend(combinations(channel_pool, r))
 
-        model = IAALVQ(max_iter=100, prototypes_per_class=2, omega_rank=400,
-                        seed=59, regularization=0.00001, omega_locality='PW',
-                        filter_bank=None, block_eye=False, norm=False,
-                        correct_imbalance=True)
+    for combo in all_combinations:
+        print(f"\n=== Running experiment for channels: {combo} ===")
+        all_features = []
+        all_labels = []
 
-        x_train = np.array(x_train)
-        x_test = np.array(x_test)
-        y_train = np.array(y_train, dtype=np.int64)
-        y_test = np.array(y_test, dtype=np.int64)
+        for label_name, prefix in label_map.items():
+            files = load_channel_files(ROOT_DIR, prefix)
+            feats = []
 
-        model.fit(x_train, y_train)
+            n_samples = len(files["R"])  # assume all channels have same number of files
+            for i in range(n_samples):
+                file_dict = {ch: files[ch][i] for ch in combo}
+                feat = create_feature_vector(file_dict, combo)
+                if feat is not None:
+                    feats.append(feat)
 
-        y_pred_test = model.predict(x_test)
-        f1 = f1_score(y_test, y_pred_test, average='weighted')
-        conf = confusion_matrix(y_test, y_pred_test, normalize='true')
+            feats = np.array(feats)
+            labels = np.array([0 if label_name == "Healthy" else 1] * len(feats))
 
-        print(f"Fold {fold+1} Test F1: {f1}")
-        print(conf)
+            all_features.append(feats)
+            all_labels.append(labels)
 
-        all_f1_test.append(f1)
-        all_conf.append(conf)
+        X = np.vstack(all_features)
+        y = np.concatenate(all_labels)
 
-    print("\n========== FINAL RESULTS (RG ONLY) ==========")
-    print("Final weighted Test F1-score:", np.mean(all_f1_test))
-    print("Final averaged confusion matrix:\n", np.mean(all_conf, axis=0))
-    print("============================================\n")
+        splitter = random_splitter_gen(X, y, 0.2)
+        all_f1_test = []
+        all_acc_test = []
+        all_conf = []
 
-    save_confusion_matrix(np.mean(all_conf, axis=0), out_dir="Saved_Results")
+        for fold in range(xval_count):
+            x_train, y_train, x_test, y_test = next(splitter)
+
+            model = IAALVQ(max_iter=100, prototypes_per_class=2, omega_rank=400,
+                            seed=59, regularization=0.00001, omega_locality='PW',
+                            filter_bank=None, block_eye=False, norm=False,
+                            correct_imbalance=True)
+
+            x_train = np.array(x_train)
+            x_test = np.array(x_test)
+            y_train = np.array(y_train, dtype=np.int64)
+            y_test = np.array(y_test, dtype=np.int64)
+
+            model.fit(x_train, y_train)
+            y_pred_test = model.predict(x_test)
+
+            f1 = f1_score(y_test, y_pred_test, average='weighted')
+            acc = accuracy_score(y_test, y_pred_test)
+            conf = confusion_matrix(y_test, y_pred_test, normalize='true')
+
+            all_f1_test.append(f1)
+            all_acc_test.append(acc)
+            all_conf.append(conf)
+
+        avg_f1 = np.mean(all_f1_test)
+        avg_acc = np.mean(all_acc_test)
+        avg_conf = np.mean(all_conf, axis=0)
+
+        combo_name = "_".join(combo)
+        save_confusion_matrix(avg_conf, out_dir="Saved_Results", name=f"conf_{combo_name}")
+        np.save(os.path.join("Saved_Results", f"f1_{combo_name}.npy"), np.array(all_f1_test))
+        np.save(os.path.join("Saved_Results", f"acc_{combo_name}.npy"), np.array(all_acc_test))
+
+        results.append((combo_name, avg_f1, avg_acc))
+        print(f"Channels {combo}: Avg weighted F1 = {avg_f1:.4f}, Avg Accuracy = {avg_acc:.4f}")
+
+    # Rank combinations by F1
+    ranked_results = sorted(results, key=lambda x: x[1], reverse=True)
+    print("\n===== RANKED CHANNEL COMBINATIONS (Best -> Worst) =====")
+    for rank, (combo_name, f1, acc) in enumerate(ranked_results, 1):
+        print(f"{rank}. {combo_name}: F1 = {f1:.4f}, Accuracy = {acc:.4f}")
+
 
 if __name__ == "__main__":
     main()
