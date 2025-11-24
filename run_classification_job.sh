@@ -17,10 +17,6 @@ cd $TMPDIR/Pattern_spectra_ML
 # Create results directory in scratch
 mkdir -p /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}
 
-# Print Python version
-which python
-python -c "import torch; print(torch.__version__)"
-
 echo "Starting training..."
 python -u feature_extraction.py
 
