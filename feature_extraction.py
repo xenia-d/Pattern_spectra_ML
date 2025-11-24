@@ -8,9 +8,7 @@ import matplotlib.pyplot as plt
 import torch
 import random
 
-# ----------------------------
-# Utils
-# ----------------------------
+
 def save_confusion_matrix(conf_matrix, out_dir="Saved_Results", name="confusion_matrix"):
     os.makedirs(out_dir, exist_ok=True)
     plt.figure(figsize=(6,5))
@@ -69,9 +67,7 @@ def random_splitter_gen(imgs, labels, validation_fraction):
         labels_train = labels[I[n_val:]]
         yield imgs_train, labels_train, imgs_val, labels_val
 
-# ----------------------------
-# Main
-# ----------------------------
+
 def main():
     np.random.seed(12)
     torch.manual_seed(12)
@@ -79,7 +75,7 @@ def main():
     xval_count = 5
     xval_fraction = 0.2
     label_map = {"Healthy": "h", "Unhealthy": "uh"}
-    channel_pool = ["R", "G", "H", "V"]
+    channel_pool = ["R", "G", "B", "H", "S", "V"]
     
     # Generate all single, pairwise, and 3-channel combinations
     all_combinations = []
