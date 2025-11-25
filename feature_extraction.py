@@ -79,7 +79,7 @@ def main():
     
     # Generate all single, pairwise, and 3-channel combinations
     all_combinations = []
-    for r in range(1, len(channel_pool) + 1):
+    for r in range(1, 2, 3):
         all_combinations.extend(combinations(channel_pool, r))
 
     results = []
