@@ -170,7 +170,7 @@ def main():
 
     # Rank results by test F1
     ranked_results = sorted(results, key=lambda x: x[1], reverse=True)
-    print("\n===== RANKED CHANNEL COMBINATIONS (Best -> Worst) =====")
+    print(f"\n===== RANKED CHANNEL COMBINATIONS (Best -> Worst) for variant {args.variant} =====")
     for rank, (combo_name, f1, acc) in enumerate(ranked_results, 1):
         print(f"{rank}. {combo_name}: F1 = {f1:.4f}, Accuracy = {acc:.4f}")
 
