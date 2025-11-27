@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Pattern_Spectra_Classification
+#SBATCH --job-name=Pattern_Spectra_Classification-Spunta
 #SBATCH --time=20:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
