@@ -16,7 +16,7 @@ cd $TMPDIR/Pattern_spectra_ML
 mkdir -p /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}
 
 echo "Starting training..."
-python -u feature_extraction.py
+python -u feature_extraction.py --variant Spunta
 
 # Move Saved Files to scratch results folder
 echo "Moving results to /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}..."

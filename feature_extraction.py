@@ -7,6 +7,7 @@ from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 import matplotlib.pyplot as plt
 import torch
 import random
+import argparse
 
 
 def save_confusion_matrix(conf_matrix, out_dir="Saved_Results", name="confusion_matrix"):
@@ -71,7 +72,15 @@ def random_splitter_gen(imgs, labels, validation_fraction):
 def main():
     np.random.seed(12)
     torch.manual_seed(12)
-    ROOT_DIR = "xmaxtree/output/Spunta"
+
+    parser = argparse.ArgumentParser(description="Potato variant")
+    parser.add_argument("--variant", type=str, default="Spunta",
+                        help="Potato variant folder to use (e.g., Spunta, Mondial, Fontane, Rudolph)")
+    args = parser.parse_args()
+
+
+
+    ROOT_DIR = f"xmaxtree/output/{args.variant}"
     xval_count = 5
     xval_fraction = 0.2
     iterations = 3  
