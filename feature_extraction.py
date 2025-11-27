@@ -110,7 +110,7 @@ def main():
             for label_name, prefix in label_map.items():
                 # Load files per channel
                 files_dict = {}
-                for ch in channel_pool:
+                for ch in combo:
                     files_dict[ch] = sorted(glob.glob(os.path.join(ROOT_DIR, f"{label_name}Leaf_{ch}channel", f"{prefix}{ch}*.m")))
                 n_samples = len(files_dict[combo[0]])
                 feats = []
