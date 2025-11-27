@@ -7,6 +7,7 @@ from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 import matplotlib.pyplot as plt
 import torch
 import random
+import pickle
 import argparse
 
 
@@ -167,6 +168,14 @@ def main():
         combo_name = "_".join(combo)
         results.append((combo_name, avg_f1, avg_acc))
         print(f"\nChannels {combo} - Avg F1 over {iterations} iterations: {avg_f1:.4f}, Avg Acc: {avg_acc:.4f}")
+
+
+            # Save results as pickle
+        os.makedirs("Saved_Results", exist_ok=True)
+        pickle_file = os.path.join("Saved_Results", f"{args.variant}_channel_results.pkl")
+        with open(pickle_file, "wb") as f:
+            pickle.dump(results, f)
+        print(f"\n✅ Results saved to {pickle_file}")
 
     # Rank results by test F1
     ranked_results = sorted(results, key=lambda x: x[1], reverse=True)
