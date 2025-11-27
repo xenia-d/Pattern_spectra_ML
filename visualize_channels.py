@@ -23,13 +23,11 @@ for s in samples:
 
 
 def show_channels(rgb_path):
-    """Visualize all channels for a single RGB patch."""
     base = os.path.basename(rgb_path).replace(".png", "")
     
     # Load RGB
     rgb = cv2.cvtColor(cv2.imread(rgb_path), cv2.COLOR_BGR2RGB)
 
-    # Build expected PGM paths
     channel_map = {
         "R":  base.replace("RGBpatch", "Rpatch") + ".pgm",
         "G":  base.replace("RGBpatch", "Gpatch") + ".pgm",
@@ -76,6 +74,5 @@ def show_channels(rgb_path):
     plt.show()
 
 
-# ---- RUN VIEWER ON SELECTED HEALTHY + UNHEALTHY ----
 for sample in samples:
     show_channels(sample)
