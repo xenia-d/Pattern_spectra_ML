@@ -170,7 +170,7 @@ def main():
         print(f"\nChannels {combo} - Avg F1 over {iterations} iterations: {avg_f1:.4f}, Avg Acc: {avg_acc:.4f}")
 
 
-            # Save results as pickle
+        # Save results as pickle
         os.makedirs("Saved_Results", exist_ok=True)
         pickle_file = os.path.join("Saved_Results", f"{args.variant}_channel_results.pkl")
         with open(pickle_file, "wb") as f:
