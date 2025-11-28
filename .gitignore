@@ -6,4 +6,4 @@ output/
 __pycache__/
 hist_outputs/
 kde_outputs/
-Feature_Extraction/color_channel_combo_results/
+Feature_Extraction/saved_color_channel_combo_results/
