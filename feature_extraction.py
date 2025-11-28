@@ -120,7 +120,7 @@ def main():
                 arr = np.array(load_granulometry_m_file(f))[:10, :10].flatten()
                 if np.max(arr) == 0:  # skip zero vectors
                     continue
-                feats.append(arr + 1e-12)  # tiny epsilon to avoid exact zeros
+                feats.append(arr)
             preloaded_features[label_name][ch] = np.array(feats)
     print("Feature preload complete.")
 
