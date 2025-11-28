@@ -7,6 +7,7 @@ from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 import matplotlib.pyplot as plt
 import torch
 import pickle
+from sklearn.metrics import precision_score, recall_score
 import argparse
 from joblib import Parallel, delayed
 
@@ -228,12 +229,18 @@ def main():
     )
     final_model.fit(X_best_train, y_best_train)
     y_pred_test = final_model.predict(X_best_test)
+
     final_f1 = f1_score(y_best_test, y_pred_test, average='weighted')
     final_acc = accuracy_score(y_best_test, y_pred_test)
+    final_precision = precision_score(y_best_test, y_pred_test, average='weighted')
+    final_recall = recall_score(y_best_test, y_pred_test, average='weighted')
     final_conf = confusion_matrix(y_best_test, y_pred_test, normalize='true')
 
     print("\n===== FINAL TEST SET RESULTS =====")
-    print(f"Test Weighted F1: {final_f1:.4f}, Accuracy: {final_acc:.4f}")
+    print(f"Test Weighted F1: {final_f1:.4f}")
+    print(f"Test Accuracy: {final_acc:.4f}")
+    print(f"Test Weighted Precision: {final_precision:.4f}")
+    print(f"Test Weighted Recall: {final_recall:.4f}")
     print("Test Confusion Matrix (normalized):")
     print(final_conf)
 
