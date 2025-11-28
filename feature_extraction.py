@@ -6,7 +6,6 @@ from lvq.IAALVQ import IAALVQ
 from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 import matplotlib.pyplot as plt
 import torch
-import random
 import pickle
 import argparse
 
@@ -32,7 +31,7 @@ def save_confusion_matrix(conf_matrix, out_dir="Saved_Results", name="confusion_
     plt.tight_layout()
     plt.savefig(os.path.join(out_dir, f"{name}.png"), dpi=300)
     plt.close()
-    print(f"Confusion matrix saved to: {os.path.join(out_dir, f'{name}.png')}")
+
 
 def load_granulometry_m_file(path):
     data = []
@@ -48,6 +47,7 @@ def load_granulometry_m_file(path):
         data.append(numbers)
     return np.array(data)
 
+
 def create_feature_vector(file_dict, channels):
     arrays = []
     for ch in channels:
@@ -57,12 +57,13 @@ def create_feature_vector(file_dict, channels):
         arrays.append(arr)
     return np.concatenate(arrays, axis=0)
 
+
 def random_splitter_gen(imgs, labels, validation_fraction):
     imgs = np.array(imgs)
     labels = np.array(labels)
     while True:
         I = np.random.permutation(len(imgs))
-        n_val = max(1, int(round(len(imgs) * validation_fraction)))  # ensure at least 1 sample
+        n_val = max(1, int(round(len(imgs) * validation_fraction)))
         imgs_val = imgs[I[:n_val]]
         labels_val = labels[I[:n_val]]
         imgs_train = imgs[I[n_val:]]
@@ -76,42 +77,49 @@ def main():
 
     parser = argparse.ArgumentParser(description="Potato variant")
     parser.add_argument("--variant", type=str, default="Spunta",
-                        help="Potato variant folder to use (e.g., Spunta, Mondial, Fontane, Rudolph)")
+                        help="Potato variant folder (Spunta, Mondial, Fontane, Rudolph)")
     args = parser.parse_args()
-
-
 
     ROOT_DIR = f"xmaxtree/output/{args.variant}"
     xval_count = 5
     xval_fraction = 0.2
-    iterations = 3  
+    iterations = 3
     label_map = {"Healthy": "h", "Unhealthy": "uh"}
     channel_pool = ["R", "G", "B", "H", "S", "V"]
-    
-    # Generate all single, pairwise, and 3-channel combinations
+
+    # All 1, 2, 3-channel combos
     all_combinations = []
     for r in range(1, 4):
         all_combinations.extend(combinations(channel_pool, r))
 
     results = []
 
+    best_f1 = -1
+    best_model = None
+    best_conf_matrix = None
+    best_combo_name = None
+
     for combo in all_combinations:
         print(f"\n=== Running experiment for channels: {combo} ===")
-        
-        iter_f1_list = []
-        iter_acc_list = []
-        
+
+        iter_f1_scores = []
+        iter_acc_scores = []
+        iter_conf_matrices = []  # averaged over folds
+
         for it in range(iterations):
             print(f"\n--- Iteration {it+1}/{iterations} ---")
             all_features = []
             all_labels = []
 
-            # Load features for Healthy and Unhealthy
+            # Load features for Healthy & Unhealthy
             for label_name, prefix in label_map.items():
-                # Load files per channel
                 files_dict = {}
                 for ch in combo:
-                    files_dict[ch] = sorted(glob.glob(os.path.join(ROOT_DIR, f"{label_name}Leaf_{ch}channel", f"{prefix}{ch}*.m")))
+                    files_dict[ch] = sorted(
+                        glob.glob(os.path.join(ROOT_DIR,
+                                               f"{label_name}Leaf_{ch}channel",
+                                               f"{prefix}{ch}*.m"))
+                    )
                 n_samples = len(files_dict[combo[0]])
                 feats = []
                 for i in range(n_samples):
@@ -119,14 +127,16 @@ def main():
                     feat = create_feature_vector(file_dict, combo)
                     if feat is not None:
                         feats.append(feat)
+
                 feats = np.array(feats)
-                labels = np.array([0 if label_name=="Healthy" else 1]*len(feats))
+                labels = np.array([0 if label_name == "Healthy" else 1] * len(feats))
+
                 all_features.append(feats)
                 all_labels.append(labels)
 
-            # Combine datasets
-            if any(len(f)==0 for f in all_features):
-                print(f"Skipping combination {combo}, no valid features for one of the classes.")
+            # Skip invalid combinations
+            if any(len(f) == 0 for f in all_features):
+                print(f"Skipping {combo}, missing samples.")
                 continue
 
             X = np.vstack(all_features)
@@ -137,51 +147,89 @@ def main():
 
             for fold in range(xval_count):
                 x_train, y_train, x_test, y_test = next(splitter)
-                model = IAALVQ(max_iter=100, prototypes_per_class=2, omega_rank=400, seed=59,
-                                regularization=1e-5, omega_locality='PW', filter_bank=None,
-                                block_eye=False, norm=False, correct_imbalance=True)
-                x_train = np.array(x_train)
-                x_test = np.array(x_test)
-                y_train = np.array(y_train, dtype=np.int64)
-                y_test = np.array(y_test, dtype=np.int64)
+
+                model = IAALVQ(
+                    max_iter=100,
+                    prototypes_per_class=2,
+                    omega_rank=400,
+                    seed=59,
+                    regularization=1e-5,
+                    omega_locality='PW',
+                    filter_bank=None,
+                    block_eye=False,
+                    norm=False,
+                    correct_imbalance=True
+                )
 
                 model.fit(x_train, y_train)
-                y_pred_test = model.predict(x_test)
+                y_pred = model.predict(x_test)
 
-                f1_test = f1_score(y_test, y_pred_test, average='weighted')
-                acc_test = accuracy_score(y_test, y_pred_test)
-                conf = confusion_matrix(y_test, y_pred_test, normalize='true')
+                f1 = f1_score(y_test, y_pred, average='weighted')
+                acc = accuracy_score(y_test, y_pred)
+                conf = confusion_matrix(y_test, y_pred, normalize='true')
 
-                f1_list.append(f1_test)
-                acc_list.append(acc_test)
+                f1_list.append(f1)
+                acc_list.append(acc)
                 conf_list.append(conf)
 
-                print(f"Fold {fold+1} - F1: {f1_test:.4f}, Acc: {acc_test:.4f}")
+                print(f"Fold {fold+1}: F1={f1:.4f}, Acc={acc:.4f}")
 
-            iter_f1_list.append(np.mean(f1_list))
-            iter_acc_list.append(np.mean(acc_list))
+            iter_f1_scores.append(np.mean(f1_list))
+            iter_acc_scores.append(np.mean(acc_list))
+            iter_conf_matrices.append(np.mean(conf_list, axis=0))
 
-        # Average across iterations
-        avg_f1 = np.mean(iter_f1_list)
-        avg_acc = np.mean(iter_acc_list)
+        # Averages across iterations
+        avg_f1 = np.mean(iter_f1_scores)
+        avg_acc = np.mean(iter_acc_scores)
+        avg_conf = np.mean(iter_conf_matrices, axis=0)
 
         combo_name = "_".join(combo)
-        results.append((combo_name, avg_f1, avg_acc))
-        print(f"\nChannels {combo} - Avg F1 over {iterations} iterations: {avg_f1:.4f}, Avg Acc: {avg_acc:.4f}")
 
+        results.append({
+            "combo": combo_name,
+            "f1_scores": iter_f1_scores,
+            "acc_scores": iter_acc_scores,
+            "avg_f1": avg_f1,
+            "avg_acc": avg_acc,
+            "conf_matrices": iter_conf_matrices
+        })
 
-        # Save results as pickle
+        # Track best combination
+        if avg_f1 > best_f1:
+            best_f1 = avg_f1
+            best_model = model
+            best_conf_matrix = avg_conf
+            best_combo_name = combo_name
+
+        # Save running results
         os.makedirs("Saved_Results", exist_ok=True)
         pickle_file = os.path.join("Saved_Results", f"{args.variant}_channel_results.pkl")
         with open(pickle_file, "wb") as f:
             pickle.dump(results, f)
-        print(f"\n✅ Results saved to {pickle_file}")
 
-    # Rank results by test F1
-    ranked_results = sorted(results, key=lambda x: x[1], reverse=True)
+    # save best model
+    best_model_file = os.path.join("Saved_Results", f"{args.variant}_best_model.pkl")
+    with open(best_model_file, "wb") as f:
+        pickle.dump(best_model, f)
+
+    # saved averaged confusion matrix across the three iterations for the best model
+    np.save(os.path.join("Saved_Results", f"{args.variant}_best_conf_matrix.npy"),
+            best_conf_matrix)
+
+    save_confusion_matrix(best_conf_matrix,
+                          out_dir="Saved_Results",
+                          name=f"{args.variant}_best_conf_matrix")
+    
+
+    ranked_results = sorted(results, key=lambda x: x["avg_f1"], reverse=True)
+
     print(f"\n===== RANKED CHANNEL COMBINATIONS (Best -> Worst) for variant {args.variant} =====")
-    for rank, (combo_name, f1, acc) in enumerate(ranked_results, 1):
-        print(f"{rank}. {combo_name}: F1 = {f1:.4f}, Accuracy = {acc:.4f}")
+    for rank, entry in enumerate(ranked_results, 1):
+        print(f"{rank}. {entry['combo']}: Avg F1 = {entry['avg_f1']:.4f}, Avg Acc = {entry['avg_acc']:.4f}")
+
+    print("\n===== BEST COMBINATION =====")
+    print(f"{best_combo_name} — F1={best_f1:.4f}")
+    print(f"Best model saved to: {best_model_file}")
 
 
 if __name__ == "__main__":
