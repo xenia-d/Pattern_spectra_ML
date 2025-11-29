@@ -10,8 +10,6 @@ def plot_ranked_channel_combos(variants, pkl_dir="Channel_Combo_Results", output
     for variant in variants:
         pkl_file = os.path.join(pkl_dir, f"{variant}_channel_results.pkl")
 
-
-        print(f"Loading {pkl_file} ...")
         with open(pkl_file, "rb") as f:
             results = pickle.load(f)
 
@@ -83,13 +81,13 @@ def plot_test_f1_scores(test_f1_dict, output_dir="Plots"):
 
 if __name__ == "__main__":
 
-    variants = ["Rudolph", "Mondial"]
+    variants = ["Rudolph", "Mondial", "Spunta"]
     plot_ranked_channel_combos(variants)
 
     test_f1_scores = {
         "Mondial": 0.9071,
         "Rudolph": 0.9406,
-        # "Spunta": 0.xxx,
+        "Spunta": 0.8903,
         # "Fontane": 0.xxx
     }
 
