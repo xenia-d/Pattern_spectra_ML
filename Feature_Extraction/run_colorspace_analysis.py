@@ -143,10 +143,13 @@ def main():
             preloaded_features[label_name][ch+"_test"] = feats[test_idx]
 
     # Generate all channel combinations
-    from itertools import combinations
-    all_combinations = []
-    for r in range(1,4):
-        all_combinations.extend(combinations(channel_pool, r))
+    
+    # all_combinations = []
+    # for r in range(1,4):
+    #     all_combinations.extend(combinations(channel_pool, r))
+
+
+    all_combinations = [tuple(channel_pool)] 
 
     results = []
     best_f1 = -1
