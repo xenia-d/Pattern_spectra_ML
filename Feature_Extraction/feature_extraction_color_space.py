@@ -11,6 +11,10 @@ from sklearn.metrics import precision_score, recall_score
 import argparse
 from joblib import Parallel, delayed
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
+
+
 def save_confusion_matrix(conf_matrix, out_dir="Saved_Results", name="confusion_matrix"):
     os.makedirs(out_dir, exist_ok=True)
     plt.figure(figsize=(6,5))
@@ -102,7 +106,7 @@ def main():
                         help="Potato variant folder (Spunta, Mondial, Fontane, Rudolph)")
     args = parser.parse_args()
 
-    ROOT_DIR = f"xmaxtree/output/{args.variant}"
+    ROOT_DIR = os.path.join(PROJECT_ROOT, "xmaxtree", "output", args.variant)
     xval_count = 5
     xval_fraction = 0.2
     iterations = 3
