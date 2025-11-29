@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Pattern_Spectra_Classification_RGBHSV-Fontane
+#SBATCH --job-name=Pattern_Spectra_Classification_RGBHSV-Spunta
 #SBATCH --time=3:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -16,7 +16,7 @@ cd $TMPDIR/Pattern_spectra_ML
 mkdir -p /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}
 
 echo "Starting training..."
-python -u Feature_Extraction/run_colorspace_analysis.py --variant Fontane
+python -u Feature_Extraction/run_colorspace_analysis.py --variant Spunta
 
 # Move Saved Files to scratch results folder
 echo "Moving results to /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}..."
