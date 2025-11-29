@@ -110,9 +110,15 @@ def main():
     args = parser.parse_args()
 
     ROOT_DIR = os.path.join(PROJECT_ROOT, "xmaxtree", "output", args.variant)
-    xval_count = 5
+    # Dynamic CV folds based on variant
+    if args.variant.lower() == "fontane": # because fontane is the biggest dataset and takes way too long to run
+        xval_count = 3
+    else:
+        xval_count = 5
+
     xval_fraction = 0.2
     iterations = 3
+
     label_map = {"Healthy": "h", "Unhealthy": "uh"}
     channel_pool = ["R", "G", "B", "H", "S", "V"]
 
