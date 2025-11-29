@@ -147,12 +147,12 @@ def main():
 
     # Generate all channel combinations
     
-    # all_combinations = []
-    # for r in range(1,4):
-    #     all_combinations.extend(combinations(channel_pool, r))
+    all_combinations = []
+    for r in range(1,4):
+        all_combinations.extend(combinations(channel_pool, r))
 
 
-    all_combinations = [tuple(channel_pool)] 
+    # all_combinations = [tuple(channel_pool)] 
 
     results = []
     best_f1 = -1
