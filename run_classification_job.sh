@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=Pattern_Spectra_Classification_RGBHSV-Rudolph
-#SBATCH --time=20:30:00
+#SBATCH --time=3:30:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-node=1
