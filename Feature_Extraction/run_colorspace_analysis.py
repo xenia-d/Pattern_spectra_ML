@@ -1,4 +1,10 @@
 import os
+import sys
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
+sys.path.insert(0, PROJECT_ROOT)
+
 import glob
 import numpy as np
 from itertools import combinations
@@ -10,9 +16,6 @@ import pickle
 from sklearn.metrics import precision_score, recall_score
 import argparse
 from joblib import Parallel, delayed
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 
 
 def save_confusion_matrix(conf_matrix, out_dir="Saved_Results", name="confusion_matrix"):
