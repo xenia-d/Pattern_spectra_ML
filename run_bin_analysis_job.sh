@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Mondial
-#SBATCH --time=10:00:00
+#SBATCH --time=5:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-node=1
