@@ -93,7 +93,7 @@ def evaluate_fold(x_train, y_train, x_test, y_test):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", type=str, required=True,
-                        help="Variant folder (Spunta, Mondial, Fontane, Rudolph, Rudolph, ...)")
+                        help="Variant folder (Spunta, Mondial, Fontane, Rudolph)")
     parser.add_argument("--combo", type=str, default="R_G_B",
                         help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'. If omitted the script will attempt to read Feature_Extraction/Channel_Combo_Results/{variant}_channel_results.pkl and pick top.")
     parser.add_argument("--output_dir", type=str, default="Saved_Results",
@@ -196,22 +196,28 @@ def main():
 
     # Define bin groups to analyze for shape, size and both
 
+    # Shape bins grouped by compactness
+    elongated_shape_bins = list(range(0, 5))     # elongated
+    compact_shape_bins   = list(range(5, 10))    # rounded/compact
+    size_bins = list(range(10))                  # 0..9
 
-    # Shape bins grouped by compactness (moment of inertia)
-    less_compact_shape_bins = list(range(0, 5))  #  elongated
-    more_compact_shape_bins   = list(range(5, 10)) # rounded
-    size_bins = list(range(10))               # columns
-
-    # small/large by size (columns)
-    small_size_bins = list(range(0, 5))   # bins 0..4
-    large_size_bins = list(range(5, 10))  # bins 5..9
+    # small/large by size
+    small_size_bins = list(range(0, 5))          # 0..4
+    large_size_bins = list(range(5, 10))         # 5..9
 
     # grouped 5x5 blocks for shape × size
     grouped_blocks = [
-    (list(range(0,5)), list(range(0,5))),  # top-left block: elongated shapes × small sizes (0-4)x(0-4)
-    (list(range(0,5)), list(range(5,10))), # top-right: elongated shapes × large sizes (0-4)x(5-9)
-    (list(range(5,10)), list(range(0,5))), # bottom-left: compact shapes × small sizes (5-9)x(0-4)
-    (list(range(5,10)), list(range(5,10))) # bottom-right: compact shapes × large sizes (5-9)x(5-9)
+        (elongated_shape_bins, small_size_bins),  # elongated × small
+        (elongated_shape_bins, large_size_bins),  # elongated × large
+        (compact_shape_bins,   small_size_bins),  # compact × small
+        (compact_shape_bins,   large_size_bins),  # compact × large
+    ]
+
+    block_names = [
+        "elongated_small",
+        "elongated_large",
+        "compact_small",
+        "compact_large"
     ]
 
     subset_specs = []
@@ -219,36 +225,38 @@ def main():
     # 1) small sizes
     subset_specs.append({
         "kind": "small_sizes",
-        "shape_bins": less_compact_shape_bins + more_compact_shape_bins,  
+        "shape_bins": elongated_shape_bins + compact_shape_bins,
         "size_bins": small_size_bins
     })
+
     # 2) large sizes
     subset_specs.append({
         "kind": "large_sizes",
-        "shape_bins": less_compact_shape_bins + more_compact_shape_bins,  
+        "shape_bins": elongated_shape_bins + compact_shape_bins,
         "size_bins": large_size_bins
     })
-    # 3) shape groups
+
+    # 3) shape-only groups
     subset_specs.append({
         "kind": "elongated_shapes",
-        "shape_bins": less_compact_shape_bins,
+        "shape_bins": elongated_shape_bins,
         "size_bins": size_bins.copy()
     })
     subset_specs.append({
         "kind": "compact_shapes",
-        "shape_bins": more_compact_shape_bins,
+        "shape_bins": compact_shape_bins,
         "size_bins": size_bins.copy()
     })
-    # 4) grouped blocks
-    for i, (s_bins, z_bins) in enumerate(grouped_blocks):
+
+    # 4) joint shape × size groups (blocks)
+    for block_name, (s_bins, z_bins) in zip(block_names, grouped_blocks):
         subset_specs.append({
-            "kind": f"block_{i}",
+            "kind": block_name,
             "shape_bins": s_bins,
             "size_bins": z_bins
         })
 
-
-    print(f"Will evaluate {len(subset_specs)} subsets per channel. Subset kinds example: {[s['kind'] for s in subset_specs[:6]]} ...")
+    print(f"Will evaluate {len(subset_specs)} subsets per channel. Subset kinds: {[s['kind'] for s in subset_specs]}")
 
     # For each channel in best_combo, run the bin-analysis
     for ch in best_combo:
