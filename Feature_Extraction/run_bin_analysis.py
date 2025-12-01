@@ -95,7 +95,7 @@ def main():
     parser.add_argument("--variant", type=str, required=True,
                         help="Variant folder (Spunta, Mondial, Fontane, Rudolph, Rudolph, ...)")
     parser.add_argument("--combo", type=str, default="R_G_B",
-                        help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'. If omitted the script will attempt to read Saved_Results/{variant}_channel_results.pkl and pick top.")
+                        help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'. If omitted the script will attempt to read Feature_Extraction/Channel_Combo_Results/{variant}_channel_results.pkl and pick top.")
     parser.add_argument("--output_dir", type=str, default="Saved_Results",
                         help="Where to save results")
     args = parser.parse_args()
@@ -112,7 +112,7 @@ def main():
     label_map = {"Healthy": "h", "Unhealthy": "uh"}
     channel_pool = ["R", "G", "B", "H", "S", "V"]
 
-    print("Preloading 10x10 pattern spectra for all labels & channels (skipping zero vectors per file/channel)...")
+    print("Preloading pattern spectra for all labels and channels")
     preloaded = {}
     for label_name, prefix in label_map.items():
         preloaded[label_name] = {}
@@ -142,7 +142,8 @@ def main():
         print(f"Using provided combo: {best_combo}")
     else:
         #  if the user does not input a combination, auto-load previous channel results to get best combo
-        prev_file = os.path.join(OUT_DIR, f"{VARIANT}_channel_results.pkl")
+        # retrieve results from experiment 1 from path : Feature_Extraction/Channel_Combo_Results/{variant}_channel_results.pkl
+        prev_file = os.path.join(PROJECT_ROOT, "Feature_Extraction", "Channel_Combo_Results", f"{VARIANT}_channel_results.pkl")
         if os.path.exists(prev_file):
                 prev = pickle.load(open(prev_file, "rb"))
                 # find the best by average f1
