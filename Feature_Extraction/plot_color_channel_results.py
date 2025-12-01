@@ -88,7 +88,7 @@ if __name__ == "__main__":
         "Mondial": 0.9071,
         "Rudolph": 0.9406,
         "Spunta": 0.8903,
-        "Fontane": 0.7383
+        "Fontane": 0.7471
     }
 
     # Run test F1 score plotting

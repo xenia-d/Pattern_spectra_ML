@@ -105,6 +105,8 @@ def main():
     OUT_DIR = args.output_dir
     os.makedirs(OUT_DIR, exist_ok=True)
 
+    print("row combo argument:", args.combo)
+
     xval_count = 5
     xval_fraction = 0.2 
     iterations = 3
