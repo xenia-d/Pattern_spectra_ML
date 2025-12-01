@@ -81,14 +81,14 @@ def plot_test_f1_scores(test_f1_dict, output_dir="Plots"):
 
 if __name__ == "__main__":
 
-    variants = ["Rudolph", "Mondial", "Spunta"]
+    variants = ["Rudolph", "Mondial", "Spunta", "Fontane"]
     plot_ranked_channel_combos(variants)
 
     test_f1_scores = {
         "Mondial": 0.9071,
         "Rudolph": 0.9406,
         "Spunta": 0.8903,
-        # "Fontane": 0.xxx
+        "Fontane": 0.7383
     }
 
     # Run test F1 score plotting

@@ -1,4 +1,10 @@
 import os
+import sys
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
+sys.path.insert(0, PROJECT_ROOT)
+
 import glob
 import argparse
 import pickle
@@ -8,9 +14,6 @@ import matplotlib.pyplot as plt
 from lvq.IAALVQ import IAALVQ
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, confusion_matrix
 import torch
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 
 np.random.seed(12)
 torch.manual_seed(12)
