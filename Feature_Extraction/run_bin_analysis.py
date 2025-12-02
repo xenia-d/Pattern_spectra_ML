@@ -242,24 +242,19 @@ def main():
         else:
             raise RuntimeError("No combo provided and previous results file not found.")
 
-
-    # Use the first channel to determine number of samples (assumes all channels same count)
-    n_samples = preloaded[list(LABEL_MAP.keys())[0]][CHANNEL_POOL[0]].shape[0]
-    # build train/test indices per label (consistent split used across channels)
     label_train_test_indices = {}
     for label_name in LABEL_MAP:
-        train_idx, test_idx = build_train_test_indices(n_samples, xval_fraction)
+        n_samples_label = preloaded[label_name][CHANNEL_POOL[0]].shape[0]
+        train_idx, test_idx = build_train_test_indices(n_samples_label, xval_fraction)
         label_train_test_indices[label_name] = (train_idx, test_idx)
-
-    # create per-label per-channel train/test arrays
+        
     for label_name in LABEL_MAP:
         train_idx, test_idx = label_train_test_indices[label_name]
         for ch in CHANNEL_POOL:
             arrs = preloaded[label_name][ch]
-            if arrs.shape[0] != n_samples:
-                raise RuntimeError(f"Channel {ch} for label {label_name} has {arrs.shape[0]} files but expected {n_samples}")
             preloaded[label_name][ch + "_train"] = arrs[train_idx]
             preloaded[label_name][ch + "_test"] = arrs[test_idx]
+
 
     #  ----- Define bin groups to evaluate -----
 
