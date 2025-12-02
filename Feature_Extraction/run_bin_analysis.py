@@ -162,12 +162,13 @@ def build_train_test_indices(n_samples, xval_fraction):
     return train_idx, test_idx
 
 
-def collect_preloaded(ROOT_DIR, label_map=LABEL_MAP, channel_pool=CHANNEL_POOL):
-    # Preload all pattern spectra into memory - faster access during CV
+def collect_preloaded(ROOT_DIR, label_map=LABEL_MAP, channels_to_load=None):
     preloaded = {}
+    if channels_to_load is None:
+        channels_to_load = CHANNEL_POOL
     for label_name, prefix in label_map.items():
         preloaded[label_name] = {}
-        for ch in channel_pool:
+        for ch in channels_to_load:
             pattern_files = sorted(
                 glob.glob(os.path.join(ROOT_DIR, f"{label_name}Leaf_{ch}channel", f"{prefix}{ch}*.m"))
             )
@@ -192,11 +193,10 @@ def collect_preloaded(ROOT_DIR, label_map=LABEL_MAP, channel_pool=CHANNEL_POOL):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", type=str, required=True, help="Variant folder (Spunta, Mondial, Fontane, Rudolph)")
-    parser.add_argument("--combo", type=str, default="R_G_B", help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'. If omitted the script will attempt to read previous results.")
+    parser.add_argument("--combo", type=str, default=None, help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'.")
     parser.add_argument("--output_dir", type=str, default=DEFAULT_OUT_DIR, help="Where to save results")
     args = parser.parse_args()
 
-    # Set up directories
     CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
     PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
     VARIANT = args.variant
@@ -204,20 +204,13 @@ def main():
     OUT_DIR = args.output_dir
     os.makedirs(OUT_DIR, exist_ok=True)
 
-    print("raw combo argument:", args.combo)
-
     xval_count = DEFAULT_XVAL_COUNT
     xval_fraction = DEFAULT_XVAL_FRACTION
     iterations = DEFAULT_ITERATIONS
 
-    # Preload all pattern spectra
-    print("Preloading pattern spectra for all labels and channels ...")
-    preloaded = collect_preloaded(ROOT_DIR, LABEL_MAP, CHANNEL_POOL)
-    print("Preload complete.")
-
-    # Determine combo (channels) to process
-    if args.combo:
-        best_combo = tuple(args.combo.split("_"))
+    # --- Determine combo first ---
+    if args.combo and args.combo.strip():
+        best_combo = tuple(args.combo.strip().split("_"))
         print(f"Using provided combo: {best_combo}")
     else:
         prev_file = os.path.join(PROJECT_ROOT, "Feature_Extraction", "Channel_Combo_Results", f"{VARIANT}_channel_results.pkl")
@@ -242,15 +235,21 @@ def main():
         else:
             raise RuntimeError("No combo provided and previous results file not found.")
 
+    # --- Preload only needed channels ---
+    print(f"Preloading pattern spectra for channels: {best_combo} ...")
+    preloaded = collect_preloaded(ROOT_DIR, LABEL_MAP, channels_to_load=best_combo)
+    print("Preload complete.")
+
+
     label_train_test_indices = {}
     for label_name in LABEL_MAP:
         n_samples_label = preloaded[label_name][CHANNEL_POOL[0]].shape[0]
         train_idx, test_idx = build_train_test_indices(n_samples_label, xval_fraction)
         label_train_test_indices[label_name] = (train_idx, test_idx)
-        
+
     for label_name in LABEL_MAP:
         train_idx, test_idx = label_train_test_indices[label_name]
-        for ch in CHANNEL_POOL:
+        for ch in best_combo:
             arrs = preloaded[label_name][ch]
             preloaded[label_name][ch + "_train"] = arrs[train_idx]
             preloaded[label_name][ch + "_test"] = arrs[test_idx]
@@ -495,15 +494,28 @@ def main():
     # Build combined features (concatenate per-channel best-bin features)
     # Note: X_train_full_10x10 and X_test_full_10x10 are reused as created for last channel they are identical across channels 
 
+    # Use per-label splits for FINAL MULTI-CHANNEL EVALUATION
     X_train_per_label = []
     y_train_per_label = []
     X_test_per_label = []
     y_test_per_label = []
+
     for label_idx, label_name in enumerate(LABEL_MAP.keys()):
-        X_train_per_label.append(preloaded[label_name][CHANNEL_POOL[0] + "_train"])  # placeholder shape check
-        y_train_per_label.append(np.array([label_idx] * preloaded[label_name][CHANNEL_POOL[0] + "_train"].shape[0]))
-        X_test_per_label.append(preloaded[label_name][CHANNEL_POOL[0] + "_test"])
-        y_test_per_label.append(np.array([label_idx] * preloaded[label_name][CHANNEL_POOL[0] + "_test"].shape[0]))
+        n_train = preloaded[label_name][best_combo[0] + "_train"].shape[0]
+        n_test = preloaded[label_name][best_combo[0] + "_test"].shape[0]
+
+        # stack arrays from all channels in best_combo for this label
+        # Note: we only concatenate features later after applying best subsets, so here we just keep 10x10 arrays
+        X_train_per_label.append(preloaded[label_name][best_combo[0] + "_train"])
+        y_train_per_label.append(np.array([label_idx] * n_train))
+        X_test_per_label.append(preloaded[label_name][best_combo[0] + "_test"])
+        y_test_per_label.append(np.array([label_idx] * n_test))
+
+    X_train_full_10x10 = np.vstack(X_train_per_label)
+    y_train_full = np.concatenate(y_train_per_label)
+    X_test_full_10x10 = np.vstack(X_test_per_label)
+    y_test_full = np.concatenate(y_test_per_label)
+
 
     X_train_full_10x10 = np.vstack(X_train_per_label)
     y_train_full = np.concatenate(y_train_per_label)
