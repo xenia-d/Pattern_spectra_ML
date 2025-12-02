@@ -729,7 +729,7 @@ if __name__ == "__main__":
         if dim <= 0: return 0
         # normalize between dl..dh then bin
         if dh == dl: return 0
-        t = (value - dl) / (d_h := (dh - dl))
+        t = (value - dl) / (dh := (dh - dl))
         t = max(0.0, min(0.9999, t))
         return int(t * dim)
     procs = [Proc(attribute_func=attr_func, mapper_func=mapper_func),
