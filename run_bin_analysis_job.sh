@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Mondial
+#SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Rudolph
 #SBATCH --time=15:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -16,7 +16,7 @@ cd $TMPDIR/Pattern_spectra_ML
 mkdir -p /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}
 
 echo "Starting training..."
-python -B Feature_Extraction/run_bin_analysis.py --variant Mondial --combo R_B
+python -B Feature_Extraction/run_bin_analysis.py --variant Rudolph --combo R_V
 
 # Move Saved Files to scratch results folder
 echo "Moving results to /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}..."
