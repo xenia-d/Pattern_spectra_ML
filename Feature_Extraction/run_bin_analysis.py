@@ -179,14 +179,15 @@ def collect_preloaded(ROOT_DIR, label_map=LABEL_MAP, channels_to_load=None):
                     arr10 = np.zeros((10, 10))
                 else:
                     arr = np.array(arr)
-                    if arr.shape[0] < 10 or arr.shape[1] < 10:
-                        arr10 = np.zeros((10, 10))
-                        h = min(10, arr.shape[0])
-                        w = min(10, arr.shape[1])
-                        arr10[:h, :w] = arr[:h, :w]
+                    if arr.shape[0] < 11 or arr.shape[1] < 11:
+                        arr11 = np.zeros((11, 11))
+                        h = min(11, arr.shape[0])
+                        w = min(11, arr.shape[1])
+                        arr11[:h, :w] = arr[:h, :w]
                     else:
-                        arr10 = arr[:10, :10]
-                arrs.append(np.array(arr10, dtype=float))
+                        arr11 = arr[:11, :11]
+
+                arrs.append(np.array(arr11, dtype=float))
             preloaded[label_name][ch] = np.array(arrs)
     return preloaded
 

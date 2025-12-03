@@ -56,4 +56,4 @@ def plot_pattern_spectra(data, title="Pattern Spectra", threshold_visible=2000):
 if __name__ == "__main__":
     path = r"xmaxtree/output/Spunta/HealthyLeaf_Gchannel/hG_3081_55_healthybox_Gpatch_17.m"
     data = load_granulometry_m_file(path)
-    plot_pattern_spectra(data, title="Granulometry Pattern Spectra", threshold_visible=200)
+    plot_pattern_spectra(data, title="Granulometry Pattern Spectra", threshold_visible=10)
