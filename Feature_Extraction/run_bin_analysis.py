@@ -257,12 +257,13 @@ def main():
 
     #  ----- Define bin groups to evaluate -----
 
-    elongated_shape_bins = list(range(0, 5))  # elongated
-    compact_shape_bins = list(range(5, 10))   # compact
-    size_bins = list(range(10))
+    # Include the 10th bin now (0..10)
+    elongated_shape_bins = list(range(0, 6))  # 0..5
+    compact_shape_bins  = list(range(6, 11)) # 6..10
+    size_bins            = list(range(11))   # 0..10
 
-    small_size_bins = list(range(0, 5))
-    large_size_bins = list(range(5, 10))
+    small_size_bins = list(range(0, 6))   # 0..5
+    large_size_bins = list(range(6, 11))  # 6..10
 
     grouped_blocks = [
         (elongated_shape_bins, small_size_bins), # elongated + small
@@ -274,24 +275,43 @@ def main():
     block_names = ["elongated_small", "elongated_large", "compact_small", "compact_large"]
 
     subset_specs = []
-    # small sizes
-    subset_specs.append({"kind": "small_sizes", "shape_bins": elongated_shape_bins + compact_shape_bins, "size_bins": small_size_bins})
 
+    # small sizes (all shapes)
+    subset_specs.append({
+        "kind": "small_sizes",
+        "shape_bins": elongated_shape_bins + compact_shape_bins,
+        "size_bins": small_size_bins
+    })
 
-    # large sizes
-    subset_specs.append({"kind": "large_sizes", "shape_bins": elongated_shape_bins + compact_shape_bins, "size_bins": large_size_bins})
+    # large sizes (all shapes)
+    subset_specs.append({
+        "kind": "large_sizes",
+        "shape_bins": elongated_shape_bins + compact_shape_bins,
+        "size_bins": large_size_bins
+    })
 
+    # shape only (all sizes)
+    subset_specs.append({
+        "kind": "elongated_shapes",
+        "shape_bins": elongated_shape_bins,
+        "size_bins": size_bins.copy()
+    })
+    subset_specs.append({
+        "kind": "compact_shapes",
+        "shape_bins": compact_shape_bins,
+        "size_bins": size_bins.copy()
+    })
 
-    # shape only
-    subset_specs.append({"kind": "elongated_shapes", "shape_bins": elongated_shape_bins, "size_bins": size_bins.copy()})
-    subset_specs.append({"kind": "compact_shapes", "shape_bins": compact_shape_bins, "size_bins": size_bins.copy()})
-
-
-    # blocks - combined shape and size 
+    # blocks - combined shape and size
     for name, (s_bins, z_bins) in zip(block_names, grouped_blocks):
-        subset_specs.append({"kind": name, "shape_bins": s_bins, "size_bins": z_bins})
+        subset_specs.append({
+            "kind": name,
+            "shape_bins": s_bins,
+            "size_bins": z_bins
+        })
 
     print(f"Will evaluate {len(subset_specs)} subsets per channel. Subset kinds: {[s['kind'] for s in subset_specs]}")
+
 
 
     # ------ Per-channel bin analysis ---------
