@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-VARIANTS = ["Rudolph", "Mondial"] 
+VARIANTS = ["Rudolph", "Mondial", "Spunta"] 
 RESULTS_DIR = "Bin_Analysis_Results"     # folder with PKLs
 PLOT_DIR = "Plots"   # folder where figures will be saved
 
@@ -65,11 +65,8 @@ def plot_variant(variant):
     os.makedirs(PLOT_DIR, exist_ok=True)
 
     channels = find_channels_for_variant(variant)
-    if not channels:
-        print(f"[WARN] No channel PKLs found for {variant}. Skipping.")
-        return
 
-    print(f"[INFO] Variant {variant} → channels found: {channels}")
+    print(f"Variant {variant} - channels found: {channels}")
 
     data = collect_variant_data(variant, channels)
 
@@ -114,7 +111,7 @@ def plot_variant(variant):
     plt.savefig(save_path, dpi=300)
     plt.close()
 
-    print(f"[SAVED] Bar plot for {variant} → {save_path}")
+    print(f"Bar plot for {variant} ---> {save_path}")
 
 
 if __name__ == "__main__":
@@ -123,4 +120,3 @@ if __name__ == "__main__":
     for variant in VARIANTS:
         plot_variant(variant)
 
-    print("\nDone. All bar plots saved to /Plots/")
