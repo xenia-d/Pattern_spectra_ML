@@ -6,7 +6,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
 
-
+import zipfile
 import glob
 import argparse
 import pickle
@@ -204,6 +204,13 @@ def main():
     OUT_DIR = args.output_dir
     os.makedirs(OUT_DIR, exist_ok=True)
 
+    # unzip fontane data
+    if VARIANT == "Fontane":
+        fontane_zip = os.path.join(PROJECT_ROOT, "xmaxtree", "output", "Fontane.zip")
+        if os.path.exists(fontane_zip):
+            with zipfile.ZipFile(fontane_zip, 'r') as zip_ref:
+                zip_ref.extractall(os.path.join(PROJECT_ROOT, "xmaxtree", "output"))
+            print("Extracted Fontane.zip")
 
     # because fontane has to bif of a dataset - too much computation for 5 folds 
     if args.variant == "Fontane":
@@ -213,6 +220,8 @@ def main():
 
     xval_fraction = DEFAULT_XVAL_FRACTION
     iterations = DEFAULT_ITERATIONS
+
+    print("determining combination")
 
     # --- Determine combo first ---
     if args.combo and args.combo.strip():
