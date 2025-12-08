@@ -206,7 +206,7 @@ def main():
 
 
     # because fontane has to bif of a dataset - too much computation for 5 folds 
-    if args.variant is "Fontane":
+    if args.variant == "Fontane":
         xval_count = 3
     else :
         xval_count = DEFAULT_XVAL_COUNT    
