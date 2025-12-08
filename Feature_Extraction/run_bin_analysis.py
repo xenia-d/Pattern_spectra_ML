@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os
 import sys
 
@@ -205,7 +204,13 @@ def main():
     OUT_DIR = args.output_dir
     os.makedirs(OUT_DIR, exist_ok=True)
 
-    xval_count = DEFAULT_XVAL_COUNT
+
+    # because fontane has to bif of a dataset - too much computation for 5 folds 
+    if args.variant is "Fontane":
+        xval_count = 3
+    else :
+        xval_count = DEFAULT_XVAL_COUNT    
+
     xval_fraction = DEFAULT_XVAL_FRACTION
     iterations = DEFAULT_ITERATIONS
 
