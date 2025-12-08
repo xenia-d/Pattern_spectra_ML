@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Fontane
-#SBATCH --time=21:10:00
+#SBATCH --time=30:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-node=1
-#SBATCH --mem=4GB
+#SBATCH --mem=8GB
 
 source $HOME/venvs/HTSMvenv_py310/bin/activate
 
