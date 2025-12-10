@@ -14,13 +14,7 @@ import numpy as np
 from itertools import product
 import matplotlib.pyplot as plt
 from lvq.IAALVQ import IAALVQ
-from sklearn.metrics import (
-    f1_score,
-    accuracy_score,
-    precision_score,
-    recall_score,
-    confusion_matrix,
-)
+from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, confusion_matrix
 import torch
 
 np.random.seed(12)
@@ -89,12 +83,22 @@ def load_granulometry_m_file(path):
     return np.array(data)
 
 
-def create_feature_array_from_10x10(arr_10x10, shape_bins, size_bins):
+def create_feature_array_from_10x10(arr_10x10, shape_bins, size_bins): # INSERTION CASE
     sel = arr_10x10[np.ix_(shape_bins, size_bins)]
     if np.max(sel) == 0:
         return None
     return sel.flatten()
 
+def create_feature_array_deletion(arr_10x10, shape_bins_to_remove, size_bins_to_remove):
+    # return all bins except those in shape_bins_to_remove and size_bins_to_remove - FOR DELETION CASE
+    mask = np.ones((11, 11), dtype=bool)
+    mask[np.ix_(shape_bins_to_remove, size_bins_to_remove)] = False
+    sel = arr_10x10[mask] # apply removal mask 
+
+    if np.max(sel) == 0:
+        return None
+    
+    return sel
 
 def random_splitter_gen(imgs, labels, validation_fraction):
     imgs = np.array(imgs)
@@ -193,7 +197,8 @@ def collect_preloaded(ROOT_DIR, label_map=LABEL_MAP, channels_to_load=None):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", type=str, required=True, help="Variant folder (Spunta, Mondial, Fontane, Rudolph)")
-    parser.add_argument("--combo", type=str, default=None, help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'.")
+    parser.add_argument("--combo", type=str, default=None, help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'")
+    parser.add_argument("--eval_type", type=str, default="insertion", choices=["insertion", "deletion"], help="Choose whether to evaluate using insertion or deletion of bin groups")
     parser.add_argument("--output_dir", type=str, default=DEFAULT_OUT_DIR, help="Where to save results")
     args = parser.parse_args()
 
@@ -203,6 +208,8 @@ def main():
     ROOT_DIR = os.path.join(PROJECT_ROOT, "xmaxtree", "output", VARIANT)
     OUT_DIR = args.output_dir
     os.makedirs(OUT_DIR, exist_ok=True)
+
+    print(f"Running bin analysis for variant {args.variant} with {args.eval_type}")
 
     # unzip fontane data
     if VARIANT == "Fontane":
@@ -247,8 +254,6 @@ def main():
                         best_f1 = avg_f1
                         best_combo = tuple(combo_name.split("_"))
             print(f"Auto-loaded best combo from {prev_file}: {best_combo} (avg_f1={best_f1:.4f})")
-        else:
-            raise RuntimeError("No combo provided and previous results file not found.")
 
     # --- Preload only needed channels ---
     print(f"Preloading pattern spectra for channels: {best_combo} ...")
@@ -331,7 +336,6 @@ def main():
 
     # ------ Per-channel bin analysis ---------
 
-
     for ch in best_combo:
         print("\n" + "="*60)
         print(f"Running bin-analysis for variant={VARIANT}, channel={ch}")
@@ -368,8 +372,12 @@ def main():
             Xtr_list = []
             ytr_list = []
             for xi, yi in zip(X_train_full_10x10, y_train_full):
-                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+                if args.eval_type == "insertion":
+                    fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+                else:  # deletion
+                    fv = create_feature_array_deletion(xi, s_bins, z_bins)
                 if fv is None:
+                    print("  skipping train sample due to all-zero feature vector")
                     continue
                 Xtr_list.append(fv)
                 ytr_list.append(yi)
@@ -386,12 +394,6 @@ def main():
                 yte_list.append(yi)
             Xte_list = np.array(Xte_list)
             yte_list = np.array(yte_list, dtype=np.int64)
-
-            # Because quite a lot of pattern spectra has 0s in certain bins/bin groups 
-            if Xtr_list.shape[0] < 2:
-                print(f"  Skipping {kind}: not enough training samples after removing zero blocks (n={Xtr_list.shape[0]})")
-                channel_results.append({"kind": kind, "note": "insufficient_train_samples", "n_train_after_filter": int(Xtr_list.shape[0]), "n_test_after_filter": int(Xte_list.shape[0])})
-                continue
 
             iter_metrics, avg_conf = run_cv_iterations(Xtr_list, ytr_list, xval_count, xval_fraction, iterations)
 
@@ -443,8 +445,12 @@ def main():
         Xtr_final_list = []
         ytr_final_list = []
         for xi, yi in zip(X_train_full_10x10, y_train_full):
-            fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            if args.eval_type == "insertion":
+                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            else:
+                fv = create_feature_array_deletion(xi, s_bins, z_bins)
             if fv is None:
+                print("  skipping train sample due to all-zero feature vector")
                 continue
             Xtr_final_list.append(fv)
             ytr_final_list.append(yi)
@@ -454,8 +460,12 @@ def main():
         Xte_final_list = []
         yte_final_list = []
         for xi, yi in zip(X_test_full_10x10, y_test_full):
-            fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            if args.eval_type == "insertion":
+                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            else:
+                fv = create_feature_array_deletion(xi, s_bins, z_bins)
             if fv is None:
+                print("  skipping test sample due to all-zero feature vector")
                 continue
             Xte_final_list.append(fv)
             yte_final_list.append(yi)
@@ -511,13 +521,8 @@ def main():
     all_best = {}
     for ch in best_combo:
         pkl_path = os.path.join(OUT_DIR, f"{VARIANT}_bin_analysis_{ch}.pkl")
-        if not os.path.exists(pkl_path):
-            print(f"Skipping final multi-channel eval: missing {pkl_path}")
-            continue
         results = pickle.load(open(pkl_path, "rb"))
         valid = [r for r in results if "f1_mean_across_iters" in r]
-        if not valid:
-            continue
         best = max(valid, key=lambda rr: rr["f1_mean_across_iters"])
         all_best[ch] = best
 
@@ -527,7 +532,7 @@ def main():
         print(f"  {ch}: {b['kind']}  (shapes={b['shape_bins']}, sizes={b['size_bins']})")
 
     # Build combined features (concatenate per-channel best-bin features)
-    # Note: X_train_full_10x10 and X_test_full_10x10 are reused as created for last channel they are identical across channels 
+
 
     # Use per-label splits for FINAL MULTI-CHANNEL EVALUATION
     X_train_per_label = []
@@ -551,12 +556,6 @@ def main():
     X_test_full_10x10 = np.vstack(X_test_per_label)
     y_test_full = np.concatenate(y_test_per_label)
 
-
-    X_train_full_10x10 = np.vstack(X_train_per_label)
-    y_train_full = np.concatenate(y_train_per_label)
-    X_test_full_10x10 = np.vstack(X_test_per_label)
-    y_test_full = np.concatenate(y_test_per_label)
-
     Xtr_final = []
     ytr_final = []
     Xte_final = []
@@ -569,7 +568,10 @@ def main():
         for ch in best_combo:
             s_bins = all_best[ch]["shape_bins"]
             z_bins = all_best[ch]["size_bins"]
-            fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            if args.eval_type == "insertion":
+                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            else:
+                fv = create_feature_array_deletion(xi, s_bins, z_bins)
             if fv is None:
                 skip = True
                 break
@@ -585,7 +587,10 @@ def main():
         for ch in best_combo:
             s_bins = all_best[ch]["shape_bins"]
             z_bins = all_best[ch]["size_bins"]
-            fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            if args.eval_type == "insertion":
+                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+            else:
+                fv = create_feature_array_deletion(xi, s_bins, z_bins)
             if fv is None:
                 skip = True
                 break
