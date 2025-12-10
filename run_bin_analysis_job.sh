@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Fontane
-#SBATCH --time=30:10:00
+#SBATCH --time=35:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-node=1
