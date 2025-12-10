@@ -507,16 +507,20 @@ def main():
 
         final_f1 = f1_score(yte_final, y_pred_test, average="weighted")
         final_acc = accuracy_score(yte_final, y_pred_test)
-        final_prec = precision_score(yte_final, y_pred_test, average="weighted", zero_division=0)
-        final_rec = recall_score(yte_final, y_pred_test, average="weighted", zero_division=0)
+        final_prec_w = precision_score(yte_final, y_pred_test, average="weighted", zero_division=0)
+        final_prec_m = precision_score(yte_final, y_pred_test, average="macro", zero_division=0)
+        final_rec_w = recall_score(yte_final, y_pred_test, average="weighted", zero_division=0)
+        final_rec_m = recall_score(yte_final, y_pred_test, average="macro", zero_division=0)
         final_conf = confusion_matrix(yte_final, y_pred_test, normalize="true")
 
         print("\n===== FINAL TEST SET RESULTS (best subset) =====")
         print(f"Channel {ch} | Best subset {best_subset['kind']}")
         print(f"Test Weighted F1: {final_f1:.4f}")
         print(f"Test Accuracy   : {final_acc:.4f}")
-        print(f"Test Precision  : {final_prec:.4f}")
-        print(f"Test Recall     : {final_rec:.4f}")
+        print(f"Test Precision Weighted: {final_prec_w:.4f}")
+        print(f"Test Precision Macro  : {final_prec_m:.4f}")
+        print(f"Test Recall Weighted  : {final_rec_w:.4f}")
+        print(f"Test Recall Macro     : {final_rec_m:.4f}")
         print("Test Confusion Matrix (normalized):")
         print(final_conf)
 
@@ -529,7 +533,7 @@ def main():
             "variant": VARIANT,
             "channel": ch,
             "best_subset": best_subset,
-            "final_metrics": {"f1": float(final_f1), "acc": float(final_acc), "prec": float(final_prec), "rec": float(final_rec)},
+            "final_metrics": {"f1": float(final_f1), "acc": float(final_acc), "prec_w": float(final_prec_w), "prec_m": float(final_prec_m), "rec_w": float(final_rec_w), "rec_m": float(final_rec_m)},
             "model_path": model_path,
         }
         with open(os.path.join(OUT_DIR, f"{VARIANT}_{ch}_best_subset_meta.pkl"), "wb") as f:
@@ -539,7 +543,6 @@ def main():
     print("\nAll channels processed. Bin-analysis complete.")
 
     # -------  FINAL EVALUATION WITH ALL CHANNELS AND BEST SUBSETS-------
-
 
     print("\n============================================================")
     print("FINAL MULTI-CHANNEL EVALUATION WITH COMBINED BEST SUBSETS")
@@ -639,16 +642,20 @@ def main():
 
     final_f1 = f1_score(yte_final, y_pred_final, average="weighted")
     final_acc = accuracy_score(yte_final, y_pred_final)
-    final_prec = precision_score(yte_final, y_pred_final, average="weighted", zero_division=0)
-    final_rec = recall_score(yte_final, y_pred_final, average="weighted", zero_division=0)
+    final_prec_w = precision_score(yte_final, y_pred_final, average="weighted", zero_division=0)
+    final_prec_m = precision_score(yte_final, y_pred_final, average="macro", zero_division=0)
+    final_rec_w = recall_score(yte_final, y_pred_final, average="weighted", zero_division=0)
+    final_rec_m = recall_score(yte_final, y_pred_final, average="macro", zero_division=0)
     final_conf = confusion_matrix(yte_final, y_pred_final, normalize="true")
 
     print("\n******** FINAL MULTI-CHANNEL TEST RESULTS ********")
     print(f"Channels used: {best_combo}")
     print(f"Weighted F1  : {final_f1:.4f}")
     print(f"Accuracy     : {final_acc:.4f}")
-    print(f"Precision    : {final_prec:.4f}")
-    print(f"Recall       : {final_rec:.4f}")
+    print(f"Precision Weighted: {final_prec_w:.4f}")
+    print(f"Precision Macro  : {final_prec_m:.4f}")
+    print(f"Recall Weighted  : {final_rec_w:.4f}")
+    print(f"Recall Macro     : {final_rec_m:.4f}")
     print("Confusion Matrix (normalized):")
     print(final_conf)
 
@@ -658,7 +665,7 @@ def main():
         "variant": VARIANT,
         "channels": best_combo,
         "best_subsets": all_best,
-        "final_metrics": {"f1": float(final_f1), "acc": float(final_acc), "prec": float(final_prec), "rec": float(final_rec)},
+        "final_metrics": {"f1": float(final_f1), "acc": float(final_acc), "prec_w": float(final_prec_w), "prec_m": float(final_prec_m), "rec_w": float(final_rec_w), "rec_m": float(final_rec_m)},
     }
     with open(os.path.join(OUT_DIR, f"{VARIANT}_multi_channel_best_subsets_meta.pkl"), "wb") as f:
         pickle.dump(meta, f)
