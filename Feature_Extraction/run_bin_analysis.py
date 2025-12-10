@@ -27,6 +27,32 @@ DEFAULT_XVAL_COUNT = 5
 DEFAULT_XVAL_FRACTION = 0.2
 DEFAULT_ITERATIONS = 3
 
+# def visualize_mask(arr_10x10, shape_bins, size_bins, mode="insertion"):
+#     import matplotlib.pyplot as plt
+#     import numpy as np
+
+#     if mode == "insertion":
+#         # selection mask
+#         mask = np.zeros_like(arr_10x10, dtype=bool)
+#         mask[np.ix_(shape_bins, size_bins)] = True
+#     else:  # deletion
+#         mask = np.ones_like(arr_10x10, dtype=bool)
+#         mask[np.ix_(shape_bins, size_bins)] = False
+
+#     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+
+#     ax[0].imshow(arr_10x10, cmap="viridis")
+#     ax[0].set_title("Original 10×10 Pattern Spectrum")
+
+#     overlay = np.ma.masked_where(~mask, arr_10x10)
+#     ax[1].imshow(arr_10x10, cmap="gray", alpha=0.3)
+#     ax[1].imshow(overlay, cmap="coolwarm", alpha=0.9)
+#     ax[1].set_title(f"Selected Bins ({mode})")
+
+#     plt.show()
+
+
+
 def make_model():
     return IAALVQ(
         max_iter=100,
@@ -367,6 +393,8 @@ def main():
             s_bins = spec["shape_bins"]
             z_bins = spec["size_bins"]
             print(f"\n-> Subset: {kind} | shapes {s_bins} | sizes {z_bins}")
+
+            # visualize_mask(X_train_full_10x10[0], s_bins, z_bins, mode=args.eval_type)
 
             # Build feature vectors (skip samples where block is all-zero)
             Xtr_list = []
