@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-node=1
-#SBATCH --mem=8GB
+#SBATCH --mem=4GB
 
 source $HOME/venvs/HTSMvenv_py310/bin/activate
 
