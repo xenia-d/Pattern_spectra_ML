@@ -44,8 +44,9 @@ def plot_ranked_channel_combos(variants, pkl_dir="Channel_Combo_Results", output
         plt.title(f"{variant} — Ranked Channel Combinations (F1 ± STD)")
 
 
-        for y, f1 in zip(y_pos, avg_f1_sorted):
-            plt.text(f1 + 0.01, y, f"{f1:.3f}", va='center', fontsize=8)
+        # annotate bars with avg f1 scores as well as std deviations
+        for y, (f1, std) in enumerate(zip(avg_f1_sorted, std_f1_sorted)):
+            plt.text(f1 + 0.01, y, f"{f1:.3f} ± {std:.3f}", va='center', fontsize=8)
 
         plt.tight_layout()
         plot_path = os.path.join(output_dir, f"{variant}_avgF1_std_ranked.png")

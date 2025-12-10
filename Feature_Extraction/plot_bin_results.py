@@ -100,6 +100,28 @@ def plot_variant(variant):
             alpha=0.8
         )
 
+    # annotate bars with mean f1 only for the highest mean F1 per channel
+    for i, ch in enumerate(channels):
+        means = []
+        for kind in EXPECTED_KINDS:
+            if ch in data[kind]:
+                m, s = data[kind][ch]
+                means.append(m)
+            else:
+                means.append(np.nan)
+
+        max_mean_idx = np.nanargmax(means)
+        max_mean = means[max_mean_idx]
+
+        offset = (i - num_channels/2) * width + width/2
+        plt.text(
+            x[max_mean_idx] + offset,
+            max_mean + 0.01,
+            f"{max_mean:.3f}",
+            ha="center",
+            fontsize=8
+        )
+
     plt.xticks(x, EXPECTED_KINDS, rotation=45, ha="right")
     plt.ylabel("F1 Score (mean ± std)")
     plt.title(f"Pattern Spectra Bin Group Analysis – {variant}")
