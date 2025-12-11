@@ -3,7 +3,7 @@
 #SBATCH --time=45:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=4GB
+#SBATCH --mem=8GB
 
 source $HOME/venvs/HTSMvenv_py310/bin/activate
 
