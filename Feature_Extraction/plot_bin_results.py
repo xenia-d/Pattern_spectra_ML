@@ -3,17 +3,17 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-EVAL_MODE = "deletion"  # either "deletion" or "insertion"
+EVAL_MODE = "insertion"  # either "deletion" or "insertion"
 
-VARIANTS = ["Rudolph", "Mondial", "Spunta"] 
+VARIANTS = ["Rudolph", "Mondial", "Spunta", "Fontane"] 
 RESULTS_DIR = "Bin_Analysis_Results"     # folder with PKLs
 PLOT_DIR = "Plots/bin_analysis/Deletion"   # folder where figures will be saved
 
 COLOR_MAP = {
-    "R": '#E07070',     
-    "B": '#7BA8D4',      
-    "G": '#7CB87C',      
-    "H": '#B896D4',      
+    "R": "#E96060",     
+    "B": "#4EA7FF",      
+    "G": "#98D798",      
+    "H": "#EC7FCA",      
     "V": "#F3BA6B",      
     "S": "#792468",      
 }
@@ -23,7 +23,13 @@ def find_channels_for_variant(variant):
         if fname.startswith(f"{variant}_bin_analysis_") and fname.endswith(".pkl"):
             ch = fname.replace(f"{variant}_bin_analysis_", "").replace(".pkl", "")
             channels.append(ch)
-    return sorted(channels)
+
+    preferred_order = ["R", "G", "B", "H", "S", "V"]
+    channels_sorted = sorted(
+        channels,
+        key=lambda c: preferred_order.index(c) if c in preferred_order else len(preferred_order)
+    )
+    return channels_sorted
 
 
 def load_channel_results(variant, channel):

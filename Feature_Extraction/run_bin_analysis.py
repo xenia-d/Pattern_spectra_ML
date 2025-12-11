@@ -117,7 +117,7 @@ def create_feature_array_from_10x10(arr_10x10, shape_bins, size_bins): # INSERTI
 
 def create_feature_array_deletion(arr_10x10, shape_bins_to_remove, size_bins_to_remove):
     # return all bins except those in shape_bins_to_remove and size_bins_to_remove - FOR DELETION CASE
-    mask = np.zeros((11, 11), dtype=bool)
+    mask = np.ones((11, 11), dtype=bool)
     mask[np.ix_(shape_bins_to_remove, size_bins_to_remove)] = False
     sel = arr_10x10[mask] # apply removal mask 
 
@@ -265,6 +265,12 @@ def main():
         n_samples_label = preloaded[label_name][CHANNEL_POOL[0]].shape[0]
         train_idx, test_idx = build_train_test_indices(n_samples_label, xval_fraction)
         label_train_test_indices[label_name] = (train_idx, test_idx)
+
+    # print label counts per split
+    for label_name in LABEL_MAP:
+        train_idx, test_idx = label_train_test_indices[label_name]
+        print(f"[DEBUG] Label '{label_name}' -> Train: {len(train_idx)}, Test: {len(test_idx)}")
+
 
     for label_name in LABEL_MAP:
         train_idx, test_idx = label_train_test_indices[label_name]
@@ -473,6 +479,15 @@ def main():
         Xte_final = np.array(Xte_final_list)
         yte_final = np.array(yte_final_list, dtype=np.int64)
 
+
+        print("\n[DEBUG] FINAL TRAIN/TEST AFTER BIN FILTER:")
+        print("Train Healthy:   ", np.sum(np.array(ytr_final) == 0))
+        print("Train Unhealthy: ", np.sum(np.array(ytr_final) == 1))
+        print("Test Healthy:    ", np.sum(np.array(yte_final) == 0))
+        print("Test Unhealthy:  ", np.sum(np.array(yte_final) == 1))
+        print("Total Train:", len(ytr_final), "Total Test:", len(yte_final))
+
+
         # train final per-channel model and evaluate on test set
         final_model = make_model()
         final_model.fit(Xtr_final, ytr_final)
@@ -537,76 +552,82 @@ def main():
 
     # Build combined features (concatenate per-channel best-bin features)
 
-
-    # Use per-label splits for FINAL MULTI-CHANNEL EVALUATION
-    X_train_per_label = []
-    y_train_per_label = []
-    X_test_per_label = []
-    y_test_per_label = []
-
-    for label_idx, label_name in enumerate(LABEL_MAP.keys()):
-        n_train = preloaded[label_name][best_combo[0] + "_train"].shape[0]
-        n_test = preloaded[label_name][best_combo[0] + "_test"].shape[0]
-
-        # stack arrays from all channels in best_combo for this label
-        # Note: we only concatenate features later after applying best subsets, so here we just keep 10x10 arrays
-        X_train_per_label.append(preloaded[label_name][best_combo[0] + "_train"])
-        y_train_per_label.append(np.array([label_idx] * n_train))
-        X_test_per_label.append(preloaded[label_name][best_combo[0] + "_test"])
-        y_test_per_label.append(np.array([label_idx] * n_test))
-
-    X_train_full_10x10 = np.vstack(X_train_per_label)
-    y_train_full = np.concatenate(y_train_per_label)
-    X_test_full_10x10 = np.vstack(X_test_per_label)
-    y_test_full = np.concatenate(y_test_per_label)
-
+    # FINAL MULTI-CHANNEL EVALUATION
     Xtr_final = []
     ytr_final = []
     Xte_final = []
     yte_final = []
 
-    # Train set
-    for xi, yi in zip(X_train_full_10x10, y_train_full):
-        fv_parts = []
-        skip = False
-        for ch in best_combo:
-            s_bins = all_best[ch]["shape_bins"]
-            z_bins = all_best[ch]["size_bins"]
-            if args.eval_type == "insertion":
-                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
-            else:
-                fv = create_feature_array_deletion(xi, s_bins, z_bins)
-            if fv is None:
-                skip = True
-                break
-            fv_parts.append(fv)
-        if not skip:
-            Xtr_final.append(np.concatenate(fv_parts))
-            ytr_final.append(yi)
+    # -------------------------
+    # BUILD FINAL TRAIN FEATURES
+    # -------------------------
+    for label_idx, label_name in enumerate(LABEL_MAP.keys()):
 
-    # Test set
-    for xi, yi in zip(X_test_full_10x10, y_test_full):
-        fv_parts = []
-        skip = False
-        for ch in best_combo:
-            s_bins = all_best[ch]["shape_bins"]
-            z_bins = all_best[ch]["size_bins"]
-            if args.eval_type == "insertion":
-                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
-            else:
-                fv = create_feature_array_deletion(xi, s_bins, z_bins)
-            if fv is None:
-                skip = True
-                break
-            fv_parts.append(fv)
-        if not skip:
-            Xte_final.append(np.concatenate(fv_parts))
-            yte_final.append(yi)
+        # Number of train samples for this label
+        n_train = len(X_train_per_label[label_idx][best_combo[0]])
 
+        for idx in range(n_train):
+            fv_parts = []
+            skip = False
+
+            for ch in best_combo:
+                xi = X_train_per_label[label_idx][ch][idx]  
+
+                s_bins = all_best[ch]["shape_bins"]
+                z_bins = all_best[ch]["size_bins"]
+
+                if args.eval_type == "insertion":
+                    fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+                else:
+                    fv = create_feature_array_deletion(xi, s_bins, z_bins)
+
+                if fv is None or fv.size == 0:
+                    skip = True
+                    break
+
+                fv_parts.append(fv)
+
+            if not skip:
+                Xtr_final.append(np.concatenate(fv_parts))
+                ytr_final.append(label_idx)
+
+    # ------------------------
+    # BUILD FINAL TEST FEATURES
+    # ------------------------
+    for label_idx, label_name in enumerate(LABEL_MAP.keys()):
+
+        n_test = len(X_test_per_label[label_idx][best_combo[0]])
+
+        for idx in range(n_test):
+            fv_parts = []
+            skip = False
+
+            for ch in best_combo:
+                xi = X_test_per_label[label_idx][ch][idx]
+
+                s_bins = all_best[ch]["shape_bins"]
+                z_bins = all_best[ch]["size_bins"]
+
+                if args.eval_type == "insertion":
+                    fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+                else:
+                    fv = create_feature_array_deletion(xi, s_bins, z_bins)
+
+                if fv is None or fv.size == 0:
+                    skip = True
+                    break
+
+                fv_parts.append(fv)
+
+            if not skip:
+                Xte_final.append(np.concatenate(fv_parts))
+                yte_final.append(label_idx)
+                
     Xtr_final = np.array(Xtr_final)
     ytr_final = np.array(ytr_final, dtype=np.int64)
     Xte_final = np.array(Xte_final)
     yte_final = np.array(yte_final, dtype=np.int64)
+
 
     print(f"\nTraining final multi-channel model using {len(best_combo)} channels...")
 
