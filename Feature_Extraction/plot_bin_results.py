@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 VARIANTS = ["Rudolph", "Mondial", "Spunta"] 
 RESULTS_DIR = "Bin_Analysis_Results"     # folder with PKLs
-PLOT_DIR = "Plots"   # folder where figures will be saved
+PLOT_DIR = "Plots/bin_analysis"   # folder where figures will be saved
 
 # Order of subsets on x-axis
 EXPECTED_KINDS = [
