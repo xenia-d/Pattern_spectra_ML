@@ -3,23 +3,11 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
+EVAL_MODE = "deletion"  # either "deletion" or "insertion"
 
 VARIANTS = ["Rudolph", "Mondial", "Spunta"] 
 RESULTS_DIR = "Bin_Analysis_Results"     # folder with PKLs
-PLOT_DIR = "Plots/bin_analysis"   # folder where figures will be saved
-
-# Order of subsets on x-axis
-EXPECTED_KINDS = [
-    "small_sizes",
-    "large_sizes",
-    "elongated_shapes",
-    "compact_shapes",
-    "elongated_small",
-    "elongated_large",
-    "compact_small",
-    "compact_large",
-]
-
+PLOT_DIR = "Plots/bin_analysis/Deletion"   # folder where figures will be saved
 
 def find_channels_for_variant(variant):
     channels = []
@@ -113,10 +101,11 @@ def plot_variant(variant):
         max_mean_idx = np.nanargmax(means)
         max_mean = means[max_mean_idx]
 
+        # make annotation appear above the bar, with a small margin above
         offset = (i - num_channels/2) * width + width/2
         plt.text(
             x[max_mean_idx] + offset,
-            max_mean + 0.01,
+            max_mean + 0.03,
             f"{max_mean:.3f}",
             ha="center",
             fontsize=8
@@ -124,7 +113,10 @@ def plot_variant(variant):
 
     plt.xticks(x, EXPECTED_KINDS, rotation=45, ha="right")
     plt.ylabel("F1 Score (mean ± std)")
-    plt.title(f"Pattern Spectra Bin Group Analysis – {variant}")
+    if EVAL_MODE == "deletion":
+        plt.title(f"Pattern Spectra Bin Group Analysis – {variant} - Deletion")
+    else:
+        plt.title(f"Pattern Spectra Bin Group Analysis – {variant} - Insertion")
     plt.grid(axis="y", alpha=0.3)
     plt.legend()
     plt.tight_layout()
@@ -137,6 +129,28 @@ def plot_variant(variant):
 
 
 if __name__ == "__main__":
+
+    if EVAL_MODE == "deletion":
+        PLOT_DIR = "Plots/bin_analysis/Deletion"
+        RESULTS_DIR = "Bin_Analysis_Results/Deletion"
+    else:
+        PLOT_DIR = "Plots/bin_analysis/Insertion"
+        RESULTS_DIR = "Bin_Analysis_Results/Insertion"
+
+
+    # Order of subsets on x-axis
+    EXPECTED_KINDS = [
+        "small_sizes",
+        "large_sizes",
+        "elongated_shapes",
+        "compact_shapes",
+        "elongated_small",
+        "elongated_large",
+        "compact_small",
+        "compact_large",
+    ]
+
+
     os.makedirs(PLOT_DIR, exist_ok=True)
 
     for variant in VARIANTS:
