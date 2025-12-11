@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Fontane-deletion
-#SBATCH --time=45:10:00
+#SBATCH --time=48:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=8GB
