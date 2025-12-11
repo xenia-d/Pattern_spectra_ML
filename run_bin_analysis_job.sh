@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Spunta-insertion
-#SBATCH --time=23:10:00
+#SBATCH --time=25:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --mem=4GB
