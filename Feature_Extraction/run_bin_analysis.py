@@ -117,7 +117,7 @@ def create_feature_array_from_10x10(arr_10x10, shape_bins, size_bins): # INSERTI
 
 def create_feature_array_deletion(arr_10x10, shape_bins_to_remove, size_bins_to_remove):
     # return all bins except those in shape_bins_to_remove and size_bins_to_remove - FOR DELETION CASE
-    mask = np.ones((11, 11), dtype=bool)
+    mask = np.zeros((11, 11), dtype=bool)
     mask[np.ix_(shape_bins_to_remove, size_bins_to_remove)] = False
     sel = arr_10x10[mask] # apply removal mask 
 
@@ -205,25 +205,17 @@ def collect_preloaded(ROOT_DIR, label_map=LABEL_MAP, channels_to_load=None):
             for p in pattern_files:
                 arr = load_granulometry_m_file(p)
                 if arr.size == 0:
-                    arr10 = np.zeros((10, 10))
+                    continue
                 else:
                     arr = np.array(arr)
-                    if arr.shape[0] < 11 or arr.shape[1] < 11:
-                        arr11 = np.zeros((11, 11))
-                        h = min(11, arr.shape[0])
-                        w = min(11, arr.shape[1])
-                        arr11[:h, :w] = arr[:h, :w]
-                    else:
-                        arr11 = arr[:11, :11]
-
-                arrs.append(np.array(arr11, dtype=float))
+                arrs.append(np.array(arr, dtype=float))
             preloaded[label_name][ch] = np.array(arrs)
     return preloaded
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--variant", type=str, required=True, help="Variant folder (Spunta, Mondial, Fontane, Rudolph)")
-    parser.add_argument("--combo", type=str, default=None, help="Optional: specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'")
+    parser.add_argument("--combo", type=str, default=None, help="specify best combo as underscore-separated channels, e.g. 'R_B' or 'R_G'")
     parser.add_argument("--eval_type", type=str, default="insertion", choices=["insertion", "deletion"], help="Choose whether to evaluate using insertion or deletion of bin groups")
     parser.add_argument("--output_dir", type=str, default=DEFAULT_OUT_DIR, help="Where to save results")
     args = parser.parse_args()
@@ -245,7 +237,7 @@ def main():
                 zip_ref.extractall(os.path.join(PROJECT_ROOT, "xmaxtree", "output"))
             print("Extracted Fontane.zip")
 
-    # because fontane has to bif of a dataset - too much computation for 5 folds 
+    # because fontane has to big of a dataset - too much computation for 5 folds 
     if args.variant == "Fontane":
         xval_count = 3
     else :
@@ -260,26 +252,6 @@ def main():
     if args.combo and args.combo.strip():
         best_combo = tuple(args.combo.strip().split("_"))
         print(f"Using provided combo: {best_combo}")
-    else:
-        prev_file = os.path.join(PROJECT_ROOT, "Feature_Extraction", "Channel_Combo_Results", f"{VARIANT}_channel_results.pkl")
-        if os.path.exists(prev_file):
-            prev = pickle.load(open(prev_file, "rb"))
-            best_combo = None
-            best_f1 = -1
-            if isinstance(prev, list) and len(prev):
-                for entry in prev:
-                    if isinstance(entry, dict):
-                        combo_name = entry.get("combo")
-                        avg_f1 = entry.get("avg_f1", -1)
-                    elif isinstance(entry, (tuple, list)) and len(entry) >= 2:
-                        combo_name = entry[0]
-                        avg_f1 = entry[1]
-                    else:
-                        continue
-                    if avg_f1 > best_f1:
-                        best_f1 = avg_f1
-                        best_combo = tuple(combo_name.split("_"))
-            print(f"Auto-loaded best combo from {prev_file}: {best_combo} (avg_f1={best_f1:.4f})")
 
     # --- Preload only needed channels ---
     print(f"Preloading pattern spectra for channels: {best_combo} ...")
@@ -287,6 +259,7 @@ def main():
     print("Preload complete.")
 
 
+    # build train/test indices
     label_train_test_indices = {}
     for label_name in LABEL_MAP:
         n_samples_label = preloaded[label_name][CHANNEL_POOL[0]].shape[0]
@@ -305,8 +278,8 @@ def main():
 
     # Include the 10th bin now (0..10)
     elongated_shape_bins = list(range(0, 6))  # 0..5
-    compact_shape_bins  = list(range(6, 11)) # 6..10
-    size_bins            = list(range(11))   # 0..10
+    compact_shape_bins = list(range(6, 11)) # 6..10
+    size_bins = list(range(11))   # 0..10
 
     small_size_bins = list(range(0, 6))   # 0..5
     large_size_bins = list(range(6, 11))  # 6..10
@@ -340,12 +313,12 @@ def main():
     subset_specs.append({
         "kind": "elongated_shapes",
         "shape_bins": elongated_shape_bins,
-        "size_bins": size_bins.copy()
+        "size_bins": small_size_bins + large_size_bins
     })
     subset_specs.append({
         "kind": "compact_shapes",
         "shape_bins": compact_shape_bins,
-        "size_bins": size_bins.copy()
+        "size_bins": small_size_bins + large_size_bins
     })
 
     # blocks - combined shape and size
@@ -415,7 +388,10 @@ def main():
             Xte_list = []
             yte_list = []
             for xi, yi in zip(X_test_full_10x10, y_test_full):
-                fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+                if args.eval_type == "insertion":
+                    fv = create_feature_array_from_10x10(xi, s_bins, z_bins)
+                else:  # deletion
+                    fv = create_feature_array_deletion(xi, s_bins, z_bins)
                 if fv is None:
                     continue
                 Xte_list.append(fv)
@@ -460,9 +436,6 @@ def main():
 
         # Pick best subset for this channel
         valid_results = [r for r in channel_results if "f1_mean_across_iters" in r]
-        if not valid_results:
-            print(f"No valid subsets for channel {ch} (all skipped). Continuing to next channel.")
-            continue
         best_subset = max(valid_results, key=lambda rr: rr["f1_mean_across_iters"])
         print(f"\nBest subset for channel {ch}: {best_subset['kind']} (avg F1={best_subset['f1_mean_across_iters']:.4f})")
 
@@ -636,6 +609,8 @@ def main():
     yte_final = np.array(yte_final, dtype=np.int64)
 
     print(f"\nTraining final multi-channel model using {len(best_combo)} channels...")
+
+    # train on full train set and evaluate on test set
     multi_model = make_model()
     multi_model.fit(Xtr_final, ytr_final)
     y_pred_final = multi_model.predict(Xte_final)

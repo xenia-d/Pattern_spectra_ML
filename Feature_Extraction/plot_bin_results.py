@@ -9,6 +9,14 @@ VARIANTS = ["Rudolph", "Mondial", "Spunta"]
 RESULTS_DIR = "Bin_Analysis_Results"     # folder with PKLs
 PLOT_DIR = "Plots/bin_analysis/Deletion"   # folder where figures will be saved
 
+COLOR_MAP = {
+    "R": '#E07070',     
+    "B": '#7BA8D4',      
+    "G": '#7CB87C',      
+    "H": '#B896D4',      
+    "V": "#F3BA6B",      
+    "S": "#792468",      
+}
 def find_channels_for_variant(variant):
     channels = []
     for fname in os.listdir(RESULTS_DIR):
@@ -27,7 +35,7 @@ def load_channel_results(variant, channel):
 
 
 def collect_variant_data(variant, channels):
-    data = {k:{} for k in EXPECTED_KINDS}
+    data = {k:{} for k in BIN_GROUPS}
 
     for ch in channels:
         results = load_channel_results(variant, ch)
@@ -58,7 +66,7 @@ def plot_variant(variant):
 
     data = collect_variant_data(variant, channels)
 
-    x = np.arange(len(EXPECTED_KINDS))
+    x = np.arange(len(BIN_GROUPS))
     num_channels = len(channels)
     width = 0.8 / num_channels
 
@@ -66,7 +74,7 @@ def plot_variant(variant):
     for i, ch in enumerate(channels):
         means = []
         stds = []
-        for kind in EXPECTED_KINDS:
+        for kind in BIN_GROUPS:
             if ch in data[kind]:
                 m, s = data[kind][ch]
                 means.append(m)
@@ -78,6 +86,7 @@ def plot_variant(variant):
         # offset each channel's bar horizontally
         offset = (i - num_channels/2) * width + width/2
 
+        # plot bar with the color from COLOR_MAP 
         plt.bar(
             x + offset,
             means,
@@ -85,13 +94,14 @@ def plot_variant(variant):
             yerr=stds,
             capsize=4,
             label=f"{ch} channel",
-            alpha=0.8
+            alpha=0.8,
+            color=COLOR_MAP.get(ch, 'black')
         )
 
     # annotate bars with mean f1 only for the highest mean F1 per channel
     for i, ch in enumerate(channels):
         means = []
-        for kind in EXPECTED_KINDS:
+        for kind in BIN_GROUPS:
             if ch in data[kind]:
                 m, s = data[kind][ch]
                 means.append(m)
@@ -111,7 +121,9 @@ def plot_variant(variant):
             fontsize=8
         )
 
-    plt.xticks(x, EXPECTED_KINDS, rotation=45, ha="right")
+    bin_labels = [label.replace("_", "\n") for label in BIN_GROUPS]
+    
+    plt.xticks(x, bin_labels, fontsize=14)
     plt.ylabel("F1 Score (mean ± std)")
     if EVAL_MODE == "deletion":
         plt.title(f"Pattern Spectra Bin Group Analysis – {variant} - Deletion")
@@ -139,7 +151,7 @@ if __name__ == "__main__":
 
 
     # Order of subsets on x-axis
-    EXPECTED_KINDS = [
+    BIN_GROUPS = [
         "small_sizes",
         "large_sizes",
         "elongated_shapes",
