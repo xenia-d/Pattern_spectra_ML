@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Spunta-insertion
+#SBATCH --job-name=Pattern_Spectra_Bin_Analysis-Spunta-deletion
 #SBATCH --time=45:10:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -15,7 +15,7 @@ cd $TMPDIR/Pattern_spectra_ML
 mkdir -p /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}
 
 echo "Starting training..."
-python -u Feature_Extraction/run_bin_analysis.py --variant Spunta --combo R_G_H --eval_type insertion
+python -u Feature_Extraction/run_bin_analysis.py --variant Spunta --combo R_G_H --eval_type deletion
 
 # Move Saved Files to scratch results folder
 echo "Moving results to /scratch/$USER/Pattern_Spectra_ML_Results/job_${SLURM_JOBID}..."
