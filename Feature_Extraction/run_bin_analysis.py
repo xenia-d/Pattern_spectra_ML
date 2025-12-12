@@ -564,7 +564,7 @@ def main():
     for label_idx, label_name in enumerate(LABEL_MAP.keys()):
 
         # Number of train samples for this label
-        n_train = len(X_train_per_label[label_idx][best_combo[0]])
+        n_train = len(X_train_per_label[label_idx])
 
         for idx in range(n_train):
             fv_parts = []
@@ -596,7 +596,7 @@ def main():
     # ------------------------
     for label_idx, label_name in enumerate(LABEL_MAP.keys()):
 
-        n_test = len(X_test_per_label[label_idx][best_combo[0]])
+        n_test = len(X_test_per_label[label_idx])
 
         for idx in range(n_test):
             fv_parts = []
@@ -622,7 +622,7 @@ def main():
             if not skip:
                 Xte_final.append(np.concatenate(fv_parts))
                 yte_final.append(label_idx)
-                
+
     Xtr_final = np.array(Xtr_final)
     ytr_final = np.array(ytr_final, dtype=np.int64)
     Xte_final = np.array(Xte_final)
