@@ -571,7 +571,7 @@ def main():
             skip = False
 
             for ch in best_combo:
-                xi = X_train_per_label[label_idx][ch][idx]  
+                xi = X_train_per_label[label_idx][idx]
 
                 s_bins = all_best[ch]["shape_bins"]
                 z_bins = all_best[ch]["size_bins"]
@@ -603,7 +603,7 @@ def main():
             skip = False
 
             for ch in best_combo:
-                xi = X_test_per_label[label_idx][ch][idx]
+                xi = X_test_per_label[label_idx][idx]
 
                 s_bins = all_best[ch]["shape_bins"]
                 z_bins = all_best[ch]["size_bins"]
