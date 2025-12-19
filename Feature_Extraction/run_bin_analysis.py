@@ -269,7 +269,7 @@ def main():
     # print label counts per split
     for label_name in LABEL_MAP:
         train_idx, test_idx = label_train_test_indices[label_name]
-        print(f"[DEBUG] Label '{label_name}' -> Train: {len(train_idx)}, Test: {len(test_idx)}")
+        print(f" Label '{label_name}' -> Train: {len(train_idx)}, Test: {len(test_idx)}")
 
 
     for label_name in LABEL_MAP:
@@ -289,13 +289,6 @@ def main():
 
     small_size_bins = list(range(0, 6))   # 0..5
     large_size_bins = list(range(6, 11))  # 6..10
-
-    grouped_blocks = [
-        (elongated_shape_bins, small_size_bins), # elongated + small
-        (elongated_shape_bins, large_size_bins), # elongated + large
-        (compact_shape_bins, small_size_bins),   # compact + small
-        (compact_shape_bins, large_size_bins),   # compact + large
-    ]
 
     block_names = ["elongated_small", "elongated_large", "compact_small", "compact_large"]
 
@@ -326,6 +319,14 @@ def main():
         "shape_bins": compact_shape_bins,
         "size_bins": small_size_bins + large_size_bins
     })
+
+    
+    grouped_blocks = [
+        (elongated_shape_bins, small_size_bins), # elongated + small
+        (elongated_shape_bins, large_size_bins), # elongated + large
+        (compact_shape_bins, small_size_bins),   # compact + small
+        (compact_shape_bins, large_size_bins),   # compact + large
+    ]
 
     # blocks - combined shape and size
     for name, (s_bins, z_bins) in zip(block_names, grouped_blocks):
@@ -445,7 +446,7 @@ def main():
         best_subset = max(valid_results, key=lambda rr: rr["f1_mean_across_iters"])
         print(f"\nBest subset for channel {ch}: {best_subset['kind']} (avg F1={best_subset['f1_mean_across_iters']:.4f})")
 
-        # Retrain on entire train set using best subset and evaluate on held-out test set
+        # --------- Retrain on entire train set using best subset and evaluate on held-out test set using best bin combos -----------
         s_bins = best_subset["shape_bins"]
         z_bins = best_subset["size_bins"]
 
@@ -480,7 +481,7 @@ def main():
         yte_final = np.array(yte_final_list, dtype=np.int64)
 
 
-        print("\n[DEBUG] FINAL TRAIN/TEST AFTER BIN FILTER:")
+        print("\nFINAL TRAIN/TEST AFTER BIN FILTER:")
         print("Train Healthy:   ", np.sum(np.array(ytr_final) == 0))
         print("Train Unhealthy: ", np.sum(np.array(ytr_final) == 1))
         print("Test Healthy:    ", np.sum(np.array(yte_final) == 0))
@@ -532,9 +533,9 @@ def main():
 
     # -------  FINAL EVALUATION WITH ALL CHANNELS AND BEST SUBSETS-------
 
-    print("\n============================================================")
+    print("\n-------------------------------------------------------------")
     print("FINAL MULTI-CHANNEL EVALUATION WITH COMBINED BEST SUBSETS")
-    print("============================================================")
+    print("----------------------------------------------------------------")
 
     # Load best subsets per channel (from saved per-channel pkls)
     all_best = {}
@@ -558,9 +559,8 @@ def main():
     Xte_final = []
     yte_final = []
 
-    # -------------------------
+
     # BUILD FINAL TRAIN FEATURES
-    # -------------------------
     for label_idx, label_name in enumerate(LABEL_MAP.keys()):
 
         # Number of train samples for this label
@@ -591,9 +591,7 @@ def main():
                 Xtr_final.append(np.concatenate(fv_parts))
                 ytr_final.append(label_idx)
 
-    # ------------------------
     # BUILD FINAL TEST FEATURES
-    # ------------------------
     for label_idx, label_name in enumerate(LABEL_MAP.keys()):
 
         n_test = len(X_test_per_label[label_idx])

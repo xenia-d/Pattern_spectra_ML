@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-EVAL_MODE = "insertion"  # either "deletion" or "insertion"
+EVAL_MODE = "deletion"  
 
 VARIANTS = ["Rudolph", "Mondial", "Spunta", "Fontane"] 
 RESULTS_DIR = "Bin_Analysis_Results"     # folder with PKLs
@@ -67,9 +67,6 @@ def plot_variant(variant):
     os.makedirs(PLOT_DIR, exist_ok=True)
 
     channels = find_channels_for_variant(variant)
-
-    print(f"Variant {variant} - channels found: {channels}")
-
     data = collect_variant_data(variant, channels)
 
     x = np.arange(len(BIN_GROUPS))
@@ -107,12 +104,15 @@ def plot_variant(variant):
     # annotate bars with mean f1 only for the highest mean F1 per channel
     for i, ch in enumerate(channels):
         means = []
+        stds = []
         for kind in BIN_GROUPS:
             if ch in data[kind]:
                 m, s = data[kind][ch]
                 means.append(m)
+                stds.append(s)
             else:
                 means.append(np.nan)
+                stds.append(0)
 
         max_mean_idx = np.nanargmax(means)
         max_mean = means[max_mean_idx]
@@ -122,10 +122,12 @@ def plot_variant(variant):
         plt.text(
             x[max_mean_idx] + offset,
             max_mean + 0.03,
-            f"{max_mean:.3f}",
+            f"{max_mean:.3f}, ±{stds[max_mean_idx]:.3f}",
             ha="center",
             fontsize=8
         )
+
+    print("mean F1 and STD per best bin group per channel:", {ch: (data[BIN_GROUPS[np.nanargmax([data[kind][ch][0] if ch in data[kind] else np.nan for kind in BIN_GROUPS])]][ch]) for ch in channels})
 
     bin_labels = [label.replace("_", "\n") for label in BIN_GROUPS]
     
