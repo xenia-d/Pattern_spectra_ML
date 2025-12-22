@@ -76,15 +76,12 @@ def plot_variant(variant):
     plt.figure(figsize=(14,7))
     for i, ch in enumerate(channels):
         means = []
-        stds = []
         for kind in BIN_GROUPS:
             if ch in data[kind]:
                 m, s = data[kind][ch]
                 means.append(m)
-                stds.append(s)
             else:
                 means.append(np.nan)
-                stds.append(0)
 
         # offset each channel's bar horizontally
         offset = (i - num_channels/2) * width + width/2
@@ -94,7 +91,6 @@ def plot_variant(variant):
             x + offset,
             means,
             width=width,
-            yerr=stds,
             capsize=4,
             label=f"{ch} channel",
             alpha=0.8,
@@ -104,15 +100,12 @@ def plot_variant(variant):
     # annotate bars with mean f1 only for the highest mean F1 per channel
     for i, ch in enumerate(channels):
         means = []
-        stds = []
         for kind in BIN_GROUPS:
             if ch in data[kind]:
                 m, s = data[kind][ch]
                 means.append(m)
-                stds.append(s)
             else:
                 means.append(np.nan)
-                stds.append(0)
 
         max_mean_idx = np.nanargmax(means)
         max_mean = means[max_mean_idx]
@@ -122,7 +115,7 @@ def plot_variant(variant):
         plt.text(
             x[max_mean_idx] + offset,
             max_mean + 0.03,
-            f"{max_mean:.3f}, ±{stds[max_mean_idx]:.3f}",
+            f"{max_mean:.3f}",
             ha="center",
             fontsize=8
         )
