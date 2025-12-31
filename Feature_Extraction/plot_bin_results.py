@@ -3,11 +3,11 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-EVAL_MODE = "deletion"  
+EVAL_MODE = "insertion"  # "deletion" or "insertion"
 
 VARIANTS = ["Rudolph", "Mondial", "Spunta", "Fontane"] 
-RESULTS_DIR = "Bin_Analysis_Results"     # folder with PKLs
-PLOT_DIR = "Plots/bin_analysis/Deletion"   # folder where figures will be saved
+RESULTS_DIR = "Bin_Analysis_Results"     
+PLOT_DIR = "Plots/bin_analysis/Deletion"   
 
 COLOR_MAP = {
     "R": "#E96060",     
@@ -76,25 +76,29 @@ def plot_variant(variant):
     plt.figure(figsize=(14,7))
     for i, ch in enumerate(channels):
         means = []
+        stds = []
         for kind in BIN_GROUPS:
             if ch in data[kind]:
                 m, s = data[kind][ch]
                 means.append(m)
+                stds.append(s)
             else:
                 means.append(np.nan)
+                stds.append(np.nan)
 
         # offset each channel's bar horizontally
         offset = (i - num_channels/2) * width + width/2
 
-        # plot bar with the color from COLOR_MAP 
         plt.bar(
             x + offset,
             means,
             width=width,
+            yerr=stds,              # <-- ADD THIS
             capsize=4,
             label=f"{ch} channel",
             alpha=0.8,
-            color=COLOR_MAP.get(ch, 'black')
+            color=COLOR_MAP.get(ch, 'black'),
+            error_kw={"elinewidth": 1}  # optional: cleaner error bars
         )
 
     # annotate bars with mean f1 only for the highest mean F1 per channel
@@ -110,7 +114,6 @@ def plot_variant(variant):
         max_mean_idx = np.nanargmax(means)
         max_mean = means[max_mean_idx]
 
-        # make annotation appear above the bar, with a small margin above
         offset = (i - num_channels/2) * width + width/2
         plt.text(
             x[max_mean_idx] + offset,
@@ -119,17 +122,18 @@ def plot_variant(variant):
             ha="center",
             fontsize=8
         )
-
     print("mean F1 and STD per best bin group per channel:", {ch: (data[BIN_GROUPS[np.nanargmax([data[kind][ch][0] if ch in data[kind] else np.nan for kind in BIN_GROUPS])]][ch]) for ch in channels})
 
     bin_labels = [label.replace("_", "\n") for label in BIN_GROUPS]
     
+    # Make plot title bigger
+
     plt.xticks(x, bin_labels, fontsize=14)
     plt.ylabel("F1 Score (mean ± std)")
     if EVAL_MODE == "deletion":
-        plt.title(f"Pattern Spectra Bin Group Analysis – {variant} - Deletion")
+        plt.title(f"Pattern Spectra Bin Group Analysis – {variant} - Deletion", fontsize=16)
     else:
-        plt.title(f"Pattern Spectra Bin Group Analysis – {variant} - Insertion")
+        plt.title(f"Pattern Spectra Bin Group Analysis – {variant} - Insertion", fontsize=16)
     plt.grid(axis="y", alpha=0.3)
     plt.legend()
     plt.tight_layout()
