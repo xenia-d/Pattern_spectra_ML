@@ -93,12 +93,12 @@ def plot_variant(variant):
             x + offset,
             means,
             width=width,
-            yerr=stds,              # <-- ADD THIS
+            yerr=stds,          
             capsize=4,
             label=f"{ch} channel",
             alpha=0.8,
             color=COLOR_MAP.get(ch, 'black'),
-            error_kw={"elinewidth": 1}  # optional: cleaner error bars
+            error_kw={"elinewidth": 1} 
         )
 
     # annotate bars with mean f1 only for the highest mean F1 per channel
