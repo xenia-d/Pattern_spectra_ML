@@ -1,100 +1,82 @@
-import os
 import sys
+import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
-sys.path.insert(0, PROJECT_ROOT)
+sys.path.append(os.path.abspath(".."))
 
-def visualize_lvq_channel_relevance(model, channel_names=["R","G","B","H","S","V"], save_path=None):
-    """
-    Visualizes only:
-      1. Channel-level diagonal relevance
-      2. Channel-level total relevance (sum of column norms)
-    """
+with open("Saved_Models/Exp1/Mondial_best_model-ALL.pkl", "rb") as f:
+    model = pickle.load(f)
 
-    omegas = model.omegas_
-    nb_features = model.nb_features
-    n_channels = len(channel_names)
-    features_per_channel = nb_features // n_channels
+omegas = model.omegas_  # list of omegas per prototype
 
-    # ------------------------------
-    # Diagonal relevance
-    # ------------------------------
-    diagonals = np.array([np.diag(omega) for omega in omegas])  # shape: (n_omegas, nb_features)
-    mean_diag = diagonals.mean(axis=0)
+lambda_diagonals = []
+for omega in omegas:
+    Lambda = omega.T @ omega
+    lambda_diagonals.append(np.diag(Lambda))
+lambda_diagonals = np.array(lambda_diagonals)
 
-    diag_channel_relevance = {}
-    for i, ch in enumerate(channel_names):
-        start = i * features_per_channel
-        end = (i + 1) * features_per_channel
-        diag_channel_relevance[ch] = np.sum(mean_diag[start:end])
-
-    plt.figure(figsize=(8,5))
-    plt.bar(diag_channel_relevance.keys(), diag_channel_relevance.values(), color='skyblue')
-    plt.title("Channel-Level Diagonal Relevance")
-    plt.ylabel("Sum of diag(Ω)")
-    plt.grid(True, axis="y", alpha=0.3)
-    if save_path:
-        plt.savefig(save_path + "_diag_channel_relevance.png", dpi=300)
-    plt.show()
-
-    print("\n===== Diagonal Channel Relevance Summary =====")
-    for ch, val in diag_channel_relevance.items():
-        print(f"{ch}: {val:.4f}")
-
-    # ------------------------------
-    # Column-norm relevance
-    # ------------------------------
-    all_omegas = np.vstack(omegas)  # shape: (#omegas * omega_rank) x nb_features
-    feature_relevance = np.linalg.norm(all_omegas, axis=0)
-
-    channel_relevance = {}
-    for i, ch in enumerate(channel_names):
-        start = i * features_per_channel
-        end = (i + 1) * features_per_channel
-        channel_relevance[ch] = np.sum(feature_relevance[start:end])
-
-    plt.figure(figsize=(8,5))
-    plt.bar(channel_relevance.keys(), channel_relevance.values(), color='salmon')
-    plt.title("Channel-Level Total Relevance (column norms)")
-    plt.ylabel("Sum of feature norms")
-    plt.grid(True, axis="y", alpha=0.3)
-    if save_path:
-        plt.savefig(save_path + "_channel_relevance.png", dpi=300)
-    plt.show()
-
-    print("\n===== Channel Relevance Summary =====")
-    for ch, val in channel_relevance.items():
-        print(f"{ch}: {val:.4f}")
-
-    return diag_channel_relevance, channel_relevance
+features_per_channel = lambda_diagonals.shape[1] // 6
+proto_classes = model.c_w_ 
 
 
-def main():
-    MODEL_PATH = "Feature_Extraction/Saved_Models/Spunta_best_model-RGH.pkl" 
-    SAVE_DIR = "Feature_Extraction/Plots/lvq_relevance"
-    os.makedirs(SAVE_DIR, exist_ok=True)
+class0_relevance = lambda_diagonals[proto_classes == 0].mean(axis=0)
+class1_relevance = lambda_diagonals[proto_classes == 1].mean(axis=0)
 
-    with open(MODEL_PATH, "rb") as f:
-        model = pickle.load(f)
+channels = ["R", "G", "B", "H", "S", "V"]
+features_per_channel = lambda_diagonals.shape[1] // len(channels)
 
-    print(f"Loaded model from: {MODEL_PATH}")
-    print(f" - nb_features   = {model.nb_features}")
-    print(f" - omega_rank    = {model.omega_rank}")
-    print(f" - omegas count  = {len(model.omegas_)}")
+COLOR_MAP = {
+    "R": "#E96060",     
+    "B": "#4EA7FF",      
+    "G": "#98D798",      
+    "H": "#EC7FCA",      
+    "V": "#F3BA6B",      
+    "S": "#792468",      
+}
 
-    channel_names = ["R", "G", "B", "H", "S", "V"]
-    visualize_lvq_channel_relevance(
-        model,
-        channel_names=channel_names,
-        save_path=os.path.join(SAVE_DIR, "lvq")
+def darken_hex(hex_color, factor=0.7):
+    hex_color = hex_color.lstrip("#")
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+    r = int(r * factor)
+    g = int(g * factor)
+    b = int(b * factor)
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+plt.figure(figsize=(12, 5))
+
+start = 0
+for ch in channels:
+    end = start + features_per_channel
+    base_color = COLOR_MAP.get(ch, "black")
+    darker_color = darken_hex(base_color, factor=0.6)
+
+    # class 0 solid line
+    plt.plot(
+        range(start, end),
+        class0_relevance[start:end],
+        label=f"{ch} – healthy",
+        color=base_color,
+        linestyle="-",
+        linewidth=2
     )
+    # class 1 dashed line (
+    plt.plot(
+        range(start, end),
+        class1_relevance[start:end],
+        label=f"{ch} – diseased",
+        color=darker_color,
+        linestyle="--",
+        linewidth=2
+    )
+    start = end
 
-    print("\nSaved plots to:", SAVE_DIR)
-
-
-if __name__ == "__main__":
-    main()
+plt.xlabel("Feature index")
+plt.ylabel("Relevance (diag($\\Lambda$))")
+plt.title("Class-wise feature relevance (IAALVQ)")
+plt.legend(ncol=2, fontsize=8)
+plt.tight_layout()
+plt.show()
