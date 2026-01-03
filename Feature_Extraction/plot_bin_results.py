@@ -86,7 +86,6 @@ def plot_variant(variant):
                 means.append(np.nan)
                 stds.append(np.nan)
 
-        # offset each channel's bar horizontally
         offset = (i - num_channels/2) * width + width/2
 
         plt.bar(

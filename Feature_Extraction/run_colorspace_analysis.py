@@ -158,6 +158,7 @@ def main():
         all_combinations.extend(combinations(channel_pool, r))
 
 
+    # uncomment this if you want to train a model with all RGBHSV channels
     # all_combinations = [tuple(channel_pool)] 
 
     results = []
