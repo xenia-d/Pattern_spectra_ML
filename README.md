@@ -3,3 +3,6 @@
 - run leaf_classification.py
 
 
+- For code concerning feature extraction with respect to color spaces and pattern spectra bins, they can be found in the *Feature_Extraction* folder. Morover, SLURM files to run large experiments for bin analysis and colorspace analysis are also available as *run_bin_analysis_job.sh* and *run_colorspace_job.sh* 
+
+
