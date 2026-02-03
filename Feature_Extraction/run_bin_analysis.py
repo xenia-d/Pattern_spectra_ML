@@ -182,7 +182,7 @@ def run_cv_iterations(X, y, xval_count, xval_fraction, iterations):
 
 
 def build_train_test_indices(n_samples, xval_fraction):
-    # for an 80-20 split, randomly select 20% of indices for test, rest for train
+    # 80-20 split, randomly select 20% of indices for test, rest for train
     indices = np.arange(n_samples)
     np.random.shuffle(indices)
     n_test = max(1, int(round(n_samples * xval_fraction)))
@@ -308,12 +308,13 @@ def main():
         "size_bins": large_size_bins
     })
 
-    # shape only (all sizes)
+    # elongated shapes (all sizes)
     subset_specs.append({
         "kind": "elongated_shapes",
         "shape_bins": elongated_shape_bins,
         "size_bins": small_size_bins + large_size_bins
     })
+    # compact shapes (all sizes)
     subset_specs.append({
         "kind": "compact_shapes",
         "shape_bins": compact_shape_bins,
@@ -408,7 +409,7 @@ def main():
 
             iter_metrics, avg_conf = run_cv_iterations(Xtr_list, ytr_list, xval_count, xval_fraction, iterations)
 
-            # build aggregated entry for saving
+            # build entry for saving
             f1_by_iter = np.array([it["f1_mean"] for it in iter_metrics])
             acc_by_iter = np.array([it["acc_mean"] for it in iter_metrics])
             prec_by_iter = np.array([it["prec_mean"] for it in iter_metrics])
@@ -531,13 +532,11 @@ def main():
 
     print("\nAll channels processed. Bin-analysis complete.")
 
-    # -------  FINAL EVALUATION WITH ALL CHANNELS AND BEST SUBSETS-------
-
     print("\n-------------------------------------------------------------")
     print("FINAL MULTI-CHANNEL EVALUATION WITH COMBINED BEST SUBSETS")
     print("----------------------------------------------------------------")
 
-    # Load best subsets per channel (from saved per-channel pkls)
+    # Load best subsets per channel
     all_best = {}
     for ch in best_combo:
         pkl_path = os.path.join(OUT_DIR, f"{VARIANT}_bin_analysis_{ch}.pkl")
@@ -553,14 +552,12 @@ def main():
 
     # Build combined features (concatenate per-channel best-bin features)
 
-    # FINAL MULTI-CHANNEL EVALUATION
     Xtr_final = []
     ytr_final = []
     Xte_final = []
     yte_final = []
 
 
-    # BUILD FINAL TRAIN FEATURES
     for label_idx, label_name in enumerate(LABEL_MAP.keys()):
 
         # Number of train samples for this label

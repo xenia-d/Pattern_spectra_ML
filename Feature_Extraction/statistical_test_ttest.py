@@ -34,9 +34,9 @@ t_rgb, p_rgb = ttest_ind(top_f1, rgb_f1, equal_var=False)
 print("\nTop vs RGB:")
 print(f"t = {t_rgb:.4f}, p = {p_rgb:.6f}")
 if p_rgb < 0.05:
-    print("→ Significant difference (p < 0.05)")
+    print("Significant difference (p < 0.05)")
 else:
-    print("→ No significant difference (p ≥ 0.05)")
+    print("No significant difference (p ≥ 0.05)")
 
 # top vs HSV 
 t_hsv, p_hsv = ttest_ind(top_f1, hsv_f1, equal_var=False)

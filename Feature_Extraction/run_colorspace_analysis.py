@@ -110,7 +110,7 @@ def main():
     args = parser.parse_args()
 
     ROOT_DIR = os.path.join(PROJECT_ROOT, "xmaxtree", "output", args.variant)
-    # Dynamic CV folds based on variant
+  
     if args.variant.lower() == "fontane": # because fontane is the biggest dataset and takes way too long to run
         xval_count = 3
     else:
@@ -167,7 +167,6 @@ def main():
 
     for combo in all_combinations:
         print(f"\n=== Running experiment for channels: {combo} ===")
-        # Build train feature set
         X_combo = np.vstack([
             np.hstack([preloaded_features[label][ch+"_train"] for ch in combo])
             for label in label_map
@@ -177,7 +176,6 @@ def main():
             for l in label_map
         ])
 
-        # Run sequential iterations
         iter_f1_scores, iter_acc_scores, iter_conf_matrices = [], [], []
         for seed in range(iterations):
             np.random.seed(seed)
