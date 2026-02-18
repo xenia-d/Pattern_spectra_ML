@@ -28,8 +28,6 @@ DEFAULT_XVAL_FRACTION = 0.2
 DEFAULT_ITERATIONS = 3
 
 # def visualize_mask(arr_10x10, shape_bins, size_bins, mode="insertion"):
-#     import matplotlib.pyplot as plt
-#     import numpy as np
 
 #     if mode == "insertion":
 #         # selection mask
@@ -248,12 +246,12 @@ def main():
 
     print("determining combination")
 
-    # --- Determine combo first ---
+    #  Determine combo first -
     if args.combo and args.combo.strip():
         best_combo = tuple(args.combo.strip().split("_"))
         print(f"Using provided combo: {best_combo}")
 
-    # --- Preload only needed channels ---
+    #  Preload only needed channels 
     print(f"Preloading pattern spectra for channels: {best_combo} ...")
     preloaded = collect_preloaded(ROOT_DIR, LABEL_MAP, channels_to_load=best_combo)
     print("Preload complete.")
@@ -341,7 +339,7 @@ def main():
 
 
 
-    # ------ Per-channel bin analysis ---------
+    # Per-channel bin analysis
 
     for ch in best_combo:
         print("\n" + "="*60)
